@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="query-test-suite.xml" />
+	<munit:test name="query-test-suiteTest" doc:id="5c5c2735-90c4-492f-8575-8bf0ca4451e4" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="apikit:router" doc:id="fe8d099e-600b-48fd-a968-0c0b9a4104e5" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-call flow="get:\query:sapi-salesforce-config" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="salesforce:query" doc:id="b39a4680-74c5-4ae1-ba6a-6add5019da3e" processor="salesforce:query">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="b2637966-87ed-4836-adf2-71be66828ab7" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="Salesforce_Config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- readUrl("classpath://query/response.dwl")]' />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="7874747c-5b02-456b-89c2-ce5b57ca163b" >
+				<munit:attributes value='#[output application/json --- readUrl("classpath://query/querySetEventAttributes.dwl")]' />
+			</munit:set-event>
+			<flow-ref doc:name="sapi-salesforce-main" doc:id="b16e1ee0-025d-439c-9c62-98d86cfe1e6f" name="sapi-salesforce-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="df7a0e48-24a2-4624-b64f-64808b635b9e" is="#[MunitTools::notNullValue()]" expression="#[payload]"/>
+		</munit:validation>
+	</munit:test>
+
+</mule>
