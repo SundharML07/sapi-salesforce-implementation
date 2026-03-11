@@ -1,96 +1,318 @@
-# ==============================
+# =============================================================================
+# Comprehensive .gitignore for Mule 4 Projects
+# =============================================================================
 
-# MuleSoft / Maven
-
-# ==============================
-
-target/
+# -----------------------------------------------------------------------------
+# Java & Maven Build Files
+# -----------------------------------------------------------------------------
+*.class
 *.jar
 *.war
-*.zip
-
-# Maven
-
-.mvn/
+*.ear
+*.nar
+target/
+build/
+*.releaseBackup
+release.properties
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
 dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# ==============================
-
-# Logs
-
-# ==============================
-
-logs/
-*.log
-
-# ==============================
-
-# Mule Runtime files
-
-# ==============================
-
+# -----------------------------------------------------------------------------
+# Mule Runtime & Studio Specific
+# -----------------------------------------------------------------------------
+# Mule Runtime
 .mule/
-*.tmp
+.mule-app/
+mule-app.properties
 
-# ==============================
-
-# Anypoint Studio
-
-# ==============================
-
-.classpath
-.project
-.settings/
+# Studio/Anypoint Studio
+velocity.log
+.studio/
 .metadata/
+.deployables/
+.cache/
 
-# ==============================
+# CloudHub & Deployment
+anchore_images
+cloudhub-application-*.txt
+mule-deploy.properties
 
-# VS Code
+# Anypoint Code Builder
+.tooling-project
 
-# ==============================
+# -----------------------------------------------------------------------------
+# IDE Files
+# -----------------------------------------------------------------------------
+# Eclipse
+.project
+.classpath
+.settings/
+.loadpath
+.factorypath
+.buildpath
+.target
+.tern-project
+*.pydevproject
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
 
-.vscode/
+# External tool builders
+.externalToolBuilders/
 
-# ==============================
+# Locally stored "Eclipse launch configurations"
+*.launch
 
-# IntelliJ
+# CDT-specific (C/C++ Development Tooling)
+.cproject
 
-# ==============================
+# JDT-specific (Eclipse Java Development Tools)
+.apt_generated
 
+# PDT-specific (PHP Development Tools)
+.buildpath
+
+# sbteclipse plugin
+.target
+
+# Tern plugin
+.tern-project
+
+# TeXlipse plugin
+.texlipse
+
+# STS (Spring Tool Suite)
+.springBeans
+
+# IntelliJ IDEA
 .idea/
+*.iws
 *.iml
+*.ipr
 out/
 
-# ==============================
+# VS Code
+.vscode/
+*.code-workspace
 
-# MacOS
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
 
-# ==============================
+# Atom
+.atom/
 
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# -----------------------------------------------------------------------------
+# Operating System Files
+# -----------------------------------------------------------------------------
+# macOS
 .DS_Store
-
-# ==============================
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
 # Windows
-
-# ==============================
-
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
 
-# ==============================
-
-# Node (if frontend included)
-
-# ==============================
-
-node_modules/
-
-# ==============================
-
-# Temporary files
-
-# ==============================
-
-*.swp
-*.swo
+# Linux
 *~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# -----------------------------------------------------------------------------
+# Security & Environment Files
+# -----------------------------------------------------------------------------
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Certificates & Keystores (be careful - some may be needed for deployment)
+# Uncomment if these should not be in version control:
+# *.p12
+# *.jks
+# *.keystore
+# *.truststore
+
+# Properties files that might contain sensitive data
+# Uncomment if these contain sensitive information:
+# *.properties
+# config.properties
+# application.properties
+
+# -----------------------------------------------------------------------------
+# Logs & Temporary Files
+# -----------------------------------------------------------------------------
+# Log files
+*.log
+logs/
+log/
+*.log.*
+*.log-*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# -----------------------------------------------------------------------------
+# Version Control & Backup Files
+# -----------------------------------------------------------------------------
+# Git merge files
+*.orig
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+*_BACKUP_*
+*_BASE_*
+*_LOCAL_*
+*_REMOTE_*
+
+# Editor backup files
+*~
+*.bak
+*.backup
+.#*
+\#*#
+.*.swp
+.*.swo
+
+# -----------------------------------------------------------------------------
+# Package Managers & Dependencies
+# -----------------------------------------------------------------------------
+# Node modules (if any frontend components)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Dependency directories
+jspm_packages/
+
+# -----------------------------------------------------------------------------
+# Test & Coverage Reports
+# -----------------------------------------------------------------------------
+# Test results
+/test-results/
+/test-reports/
+junit.xml
+TEST-*.xml
+
+# Coverage reports
+/coverage/
+*.cover
+*.py,cover
+.coverage
+.coverage.*
+
+# -----------------------------------------------------------------------------
+# Miscellaneous
+# -----------------------------------------------------------------------------
+# Temporary directories
+temp/
+tmp/
+cache/
+.cache/
+
+# Runtime configuration
+.runtime/
+
+# Application data
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Compiled binary addons (for any native modules)
+build/Release
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+.tmp/
+.temp/
+
+# =============================================================================
+# End of .gitignore
+# =============================================================================
