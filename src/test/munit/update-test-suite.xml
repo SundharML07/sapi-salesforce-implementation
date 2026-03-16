@@ -15,7 +15,7 @@
 					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
 				</munit-tools:with-attributes>
 				
-				<munit-tools:then-call flow="patch:\update:application\json:sapi-salesforce-config" />
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="salesforce:update" doc:id="7993f546-3f79-49fd-8fd7-6314bb6b0564" processor="salesforce:update" >
 				<munit-tools:with-attributes >
@@ -44,7 +44,7 @@
 				<munit-tools:with-attributes >
 					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
 				</munit-tools:with-attributes>
-				<munit-tools:then-call flow="patch:\update:application\json:sapi-salesforce-config" />
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="salesforce:update" doc:id="55e70031-b85f-49e3-905e-7a1a31aa7aaa" processor="salesforce:update">
 				<munit-tools:with-attributes>
@@ -74,7 +74,7 @@
 					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
 				</munit-tools:with-attributes>
 				
-				<munit-tools:then-call flow="patch:\update:application\json:sapi-salesforce-config" />
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="salesforce:upsert" doc:id="7ba9c27d-fd06-4d5e-b537-6904d0e4b0b2" processor="salesforce:upsert" >
 				<munit-tools:with-attributes >
@@ -104,7 +104,7 @@
 					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
 				</munit-tools:with-attributes>
 				
-				<munit-tools:then-call flow="patch:\update:application\json:sapi-salesforce-config" />
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
 			</munit-tools:mock-when>
 			<munit-tools:mock-when doc:name="salesforce:upsert" doc:id="fb15bf98-670d-4ee8-bf70-87f747d4992d" processor="salesforce:upsert" >
 				<munit-tools:with-attributes >

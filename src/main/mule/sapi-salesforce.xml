@@ -131,7 +131,7 @@ output application/json
             </on-error-propagate>
         </error-handler>
     </flow>
-    <flow name="patch:\update:application\json:sapi-salesforce-config">
+    <flow name="post:\update:application\json:sapi-salesforce-config">
 		<flow-ref doc:name="updateFlow" doc:id="b37630de-555a-4c0a-88b0-a2adcd91b4c7" name="updateFlow"/>
     </flow>
     <flow name="get:\query:sapi-salesforce-config">
