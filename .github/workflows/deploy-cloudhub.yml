@@ -16,29 +16,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    name: Build, Publish, and Deploy
+  test:
+    name: MUnit Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.merged == true
     permissions:
       contents: read
-
     env:
       ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
       ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
-      ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
       ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
-      MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
-      ANYPOINT_EXCHANGE_USERNAME: '~~~Client~~~'
-      ANYPOINT_EXCHANGE_PASSWORD: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
       MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
       MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
-      CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
-      CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-1' }}
-      CLOUDHUB_APP_NAME: ${{ vars.CLOUDHUB_APP_NAME != '' && vars.CLOUDHUB_APP_NAME || 'sapi-salesforce-implementation' }}
-      CLOUDHUB_REPLICAS: ${{ vars.CLOUDHUB_REPLICAS != '' && vars.CLOUDHUB_REPLICAS || '1' }}
-      CLOUDHUB_VCORES: ${{ vars.CLOUDHUB_VCORES != '' && vars.CLOUDHUB_VCORES || '0.1' }}
-
+      MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -46,43 +36,19 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
+          distribution: temurin
           java-version: '17'
-          distribution: 'temurin'
-          cache: 'maven'
+          cache: maven
 
-      - name: Create Maven settings.xml for Anypoint Exchange
-        shell: bash
-        run: |
-          mkdir -p "${HOME}/.m2"
-          private_repo_username="${MULESOFT_NEXUS_USERNAME:-${ANYPOINT_EXCHANGE_USERNAME}}"
-          private_repo_password="${MULESOFT_NEXUS_PASSWORD:-${ANYPOINT_EXCHANGE_PASSWORD}}"
-          cat > "${HOME}/.m2/settings.xml" <<EOF
-          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
-            <servers>
-              <server>
-                <id>anypoint-exchange-v3</id>
-                <username>${ANYPOINT_EXCHANGE_USERNAME}</username>
-                <password>${ANYPOINT_EXCHANGE_PASSWORD}</password>
-              </server>
-              <server>
-                <id>mulesoft-private</id>
-                <username>${private_repo_username}</username>
-                <password>${private_repo_password}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
-      - name: Validate required secrets
+      - name: Validate test secrets
         shell: bash
         run: |
           required_vars=(
             ANYPOINT_CLIENT_ID
             ANYPOINT_CLIENT_SECRET
-            ANYPOINT_ENV_NAME
             ANYPOINT_ORG_ID
+            MULESOFT_NEXUS_USERNAME
+            MULESOFT_NEXUS_PASSWORD
             MULE_SECURE_KEY
           )
           for var_name in "${required_vars[@]}"; do
@@ -92,32 +58,137 @@ jobs:
             fi
           done
 
-      - name: Build and run MUnit tests
+      - name: Run MUnit tests
         run: |
-          mvn --batch-mode --errors --settings "${HOME}/.m2/settings.xml" \
-            clean verify \
+          mvn --batch-mode --errors test \
+            --settings .maven/settings.xml \
             -Denv=dev \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
-            -Danypoint.org.id="${ANYPOINT_ORG_ID}" \
-            -B
+            -Danypoint.org.id="${ANYPOINT_ORG_ID}"
+
+      - name: Upload MUnit reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: munit-test-reports
+          path: |
+            target/site/munit/coverage/
+            target/munit-reports/
+          if-no-files-found: warn
+
+  build:
+    name: Package Application
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+      MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
+      MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
+      MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Package Mule application
+        run: |
+          mvn --batch-mode --errors clean package \
+            --settings .maven/settings.xml \
+            -DskipMunitTests \
+            -Denv=dev \
+            -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
+            -Danypoint.org.id="${ANYPOINT_ORG_ID}"
+
+      - name: Upload deployable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mule-app
+          path: target/*.jar
+          if-no-files-found: error
+
+  deploy:
+    name: Publish to Exchange and Deploy to CloudHub 2.0
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
+      ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+      MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
+      MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
+      MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
+      CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
+      CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-1' }}
+      CLOUDHUB_APP_NAME: ${{ vars.CLOUDHUB_APP_NAME != '' && vars.CLOUDHUB_APP_NAME || 'sapi-salesforce-implementation' }}
+      CLOUDHUB_REPLICAS: ${{ vars.CLOUDHUB_REPLICAS != '' && vars.CLOUDHUB_REPLICAS || '1' }}
+      CLOUDHUB_VCORES: ${{ vars.CLOUDHUB_VCORES != '' && vars.CLOUDHUB_VCORES || '0.1' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+
+      - name: Validate deploy secrets
+        shell: bash
+        run: |
+          required_vars=(
+            ANYPOINT_CLIENT_ID
+            ANYPOINT_CLIENT_SECRET
+            ANYPOINT_ENV_NAME
+            ANYPOINT_ORG_ID
+            MULESOFT_NEXUS_USERNAME
+            MULESOFT_NEXUS_PASSWORD
+            MULE_SECURE_KEY
+          )
+          for var_name in "${required_vars[@]}"; do
+            if [ -z "${!var_name}" ]; then
+              echo "Missing required secret: ${var_name}"
+              exit 1
+            fi
+          done
+
+      - name: Download packaged artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mule-app
+          path: target
 
       - name: Publish artifact to Anypoint Exchange
         run: |
-          mvn --batch-mode --errors --settings "${HOME}/.m2/settings.xml" \
-            deploy \
-            -DskipTests \
-            -Dmaven.test.skip=true \
+          artifactName=$(ls target/*.jar | head -1)
+          mvn --batch-mode --errors deploy \
+            --settings .maven/settings.xml \
+            -DskipMunitTests \
+            -Dmule.artifact="${artifactName}" \
             -Denv=dev \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
-            -Danypoint.org.id="${ANYPOINT_ORG_ID}" \
-            -B
+            -Danypoint.org.id="${ANYPOINT_ORG_ID}"
 
       - name: Deploy to CloudHub 2.0
         run: |
-          mvn --batch-mode --errors --settings "${HOME}/.m2/settings.xml" \
-            mule:deploy \
-            -DskipTests \
-            -Dmaven.test.skip=true \
+          artifactName=$(ls target/*.jar | head -1)
+          mvn --batch-mode --errors mule:deploy \
+            --settings .maven/settings.xml \
+            -DskipMunitTests \
+            -Dmule.artifact="${artifactName}" \
             -Denv=dev \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
@@ -128,5 +199,4 @@ jobs:
             -Dcloudhub.target="${CLOUDHUB_TARGET}" \
             -Dapp.name="${CLOUDHUB_APP_NAME}" \
             -Dcloudhub.replicas="${CLOUDHUB_REPLICAS}" \
-            -Dcloudhub.vcores="${CLOUDHUB_VCORES}" \
-            -B
+            -Dcloudhub.vcores="${CLOUDHUB_VCORES}"
