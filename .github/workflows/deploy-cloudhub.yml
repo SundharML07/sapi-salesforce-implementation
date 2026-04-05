@@ -43,6 +43,9 @@ jobs:
           </settings>
           EOF
 
+      - name: Debug settings.xml
+        run: cat ~/.m2/settings.xml
+
       - name: Build & Test
         run: mvn clean verify --no-transfer-progress
 
