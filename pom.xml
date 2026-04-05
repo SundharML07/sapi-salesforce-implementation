@@ -37,17 +37,28 @@
 				<version>${mule.maven.plugin.version}</version>
 				<extensions>true</extensions>
 				<configuration>
-					<classifier>mule-application</classifier>
 					<cloudhub2Deployment>
 						<uri>https://anypoint.mulesoft.com</uri>
 						<provider>MC</provider>
+						
 						<environment>${environment}</environment>
-						<target>Shared Space</target>
-						<businessGroupId>${anypoint.org.id}</businessGroupId>
+						<businessGroup>${anypoint.org.id}</businessGroup>
+						
+						<target>Cloudhub-US-East-1</target>
+						<muleVersion>${mule.version}</muleVersion>
+						
 						<server>anypoint-exchange-v3</server>
+						
 						<applicationName>${app.name}</applicationName>
 						<replicas>1</replicas>
 						<vCores>0.1</vCores>
+						<integrations>
+							<services>
+								<objectStoreV2>
+									<enabled>true</enabled>
+								</objectStoreV2>
+							</services>
+						</integrations>
 					</cloudhub2Deployment>
 				</configuration>
 			</plugin>
@@ -175,12 +186,6 @@
 			<id>mulesoft-releases</id>
 			<name>MuleSoft Releases Repository</name>
 			<url>https://repository.mulesoft.org/nexus/repository/releases/</url>
-			<layout>default</layout>
-		</repository>
-		<repository>
-			<id>mulesoft-private</id>
-			<name>MuleSoft Private Repository</name>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/private/</url>
 			<layout>default</layout>
 		</repository>
 	</repositories>
