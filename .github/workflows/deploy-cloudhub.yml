@@ -1,51 +1,27 @@
-name: Build and Deploy to CloudHub 2.0
+name: Build, Publish, and Deploy to CloudHub 2.0
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - closed
   workflow_dispatch:
 
+concurrency:
+  group: cloudhub2-${{ github.event.pull_request.merge_commit_sha || github.sha }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    name: Build & MUnit
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17 and Maven Settings
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          server-id: anypoint-exchange-v3
-          server-username: client
-          server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
-
-      - name: Cache Maven Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-
-      - name: Build with Maven
-        run: |
-          mvn clean package \
-            -Denv=local \
-            -Dsecure.key=${{ secrets.MULE_SECURE_KEY }} \
-            -B
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mule-app
-          path: target/*.jar
-
   deploy:
-    name: Deploy to CH2.0
-    needs: build
+    name: Build, Publish, and Deploy
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.merged == true
+    permissions:
+      contents: read
 
     env:
       ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
@@ -53,27 +29,95 @@ jobs:
       ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
       ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
+      ANYPOINT_EXCHANGE_USERNAME: '~~~Client~~~'
+      ANYPOINT_EXCHANGE_PASSWORD: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
+      CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-1' }}
+      CLOUDHUB_APP_NAME: ${{ vars.CLOUDHUB_APP_NAME != '' && vars.CLOUDHUB_APP_NAME || 'sapi-salesforce-implementation' }}
+      CLOUDHUB_REPLICAS: ${{ vars.CLOUDHUB_REPLICAS != '' && vars.CLOUDHUB_REPLICAS || '1' }}
+      CLOUDHUB_VCORES: ${{ vars.CLOUDHUB_VCORES != '' && vars.CLOUDHUB_VCORES || '0.1' }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17 and Maven Settings
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          server-id: anypoint-exchange-v3
-          server-username: client
-          server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          cache: 'maven'
 
-      - name: Deploy to CloudHub 2
+      - name: Create Maven settings.xml for Anypoint Exchange
+        shell: bash
         run: |
-          mvn clean deploy \
-            -DmuleDeploy \
-            -DskipTests \
+          mkdir -p "${HOME}/.m2"
+          cat > "${HOME}/.m2/settings.xml" <<EOF
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>${ANYPOINT_EXCHANGE_USERNAME}</username>
+                <password>${ANYPOINT_EXCHANGE_PASSWORD}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Validate required secrets
+        shell: bash
+        run: |
+          required_vars=(
+            ANYPOINT_CLIENT_ID
+            ANYPOINT_CLIENT_SECRET
+            ANYPOINT_ENV_NAME
+            ANYPOINT_ORG_ID
+            MULE_SECURE_KEY
+          )
+          for var_name in "${required_vars[@]}"; do
+            if [ -z "${!var_name}" ]; then
+              echo "Missing required secret: ${var_name}"
+              exit 1
+            fi
+          done
+
+      - name: Build and run MUnit tests
+        run: |
+          mvn --batch-mode --errors --settings "${HOME}/.m2/settings.xml" \
+            clean verify \
             -Denv=dev \
-            -Dsecure.key=${{ secrets.MULE_SECURE_KEY }} \
-            -Denvironment=${{ env.ANYPOINT_ENV_NAME }} \
-            -Danypoint.org.id=${{ env.ANYPOINT_ORG_ID }} \
+            -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
+            -Danypoint.org.id="${ANYPOINT_ORG_ID}" \
+            -B
+
+      - name: Publish artifact to Anypoint Exchange
+        run: |
+          mvn --batch-mode --errors --settings "${HOME}/.m2/settings.xml" \
+            deploy \
+            -DskipTests \
+            -Dmaven.test.skip=true \
+            -Denv=dev \
+            -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
+            -Danypoint.org.id="${ANYPOINT_ORG_ID}" \
+            -B
+
+      - name: Deploy to CloudHub 2.0
+        run: |
+          mvn --batch-mode --errors --settings "${HOME}/.m2/settings.xml" \
+            mule:deploy \
+            -DskipTests \
+            -Dmaven.test.skip=true \
+            -Denv=dev \
+            -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
+            -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
+            -DconnectedAppClientSecret="${ANYPOINT_CLIENT_SECRET}" \
+            -Danypoint.org.id="${ANYPOINT_ORG_ID}" \
+            -Danypoint.business.group.id="${CLOUDHUB_BUSINESS_GROUP_ID}" \
+            -Denvironment="${ANYPOINT_ENV_NAME}" \
+            -Dcloudhub.target="${CLOUDHUB_TARGET}" \
+            -Dapp.name="${CLOUDHUB_APP_NAME}" \
+            -Dcloudhub.replicas="${CLOUDHUB_REPLICAS}" \
+            -Dcloudhub.vcores="${CLOUDHUB_VCORES}" \
             -B
