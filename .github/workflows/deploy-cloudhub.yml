@@ -62,6 +62,11 @@ jobs:
                 <username>${ANYPOINT_EXCHANGE_USERNAME}</username>
                 <password>${ANYPOINT_EXCHANGE_PASSWORD}</password>
               </server>
+              <server>
+                <id>mulesoft-private</id>
+                <username>${ANYPOINT_EXCHANGE_USERNAME}</username>
+                <password>${ANYPOINT_EXCHANGE_PASSWORD}</password>
+              </server>
             </servers>
           </settings>
           EOF
