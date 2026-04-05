@@ -23,6 +23,10 @@ jobs:
           server-username: ANYPOINT_CLIENT_USERNAME
           server-password: ANYPOINT_CLIENT_PASSWORD
 
+      - name: Add MuleSoft private repo credentials to settings.xml
+        run: |
+          sed -i 's|</servers>|  <server>\n    <id>mulesoft-private</id>\n    <username>~~~Client~~~</username>\n    <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>\n  </server>\n</servers>|' ~/.m2/settings.xml
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -62,6 +66,10 @@ jobs:
           server-id: anypoint-exchange-v3
           server-username: ANYPOINT_CLIENT_USERNAME
           server-password: ANYPOINT_CLIENT_PASSWORD
+
+      - name: Add MuleSoft private repo credentials to settings.xml
+        run: |
+          sed -i 's|</servers>|  <server>\n    <id>mulesoft-private</id>\n    <username>~~~Client~~~</username>\n    <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>\n  </server>\n</servers>|' ~/.m2/settings.xml
 
       - name: Cache Maven packages
         uses: actions/cache@v4
