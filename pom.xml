@@ -61,6 +61,9 @@
 						<vCores>${cloudhub.vcores}</vCores>
 						<deploymentTimeout>${cloudhub.deployment.timeout}</deploymentTimeout>
 						<skipDeploymentVerification>false</skipDeploymentVerification>
+						<properties>
+							<MULE_SECURE_KEY>${MULE_SECURE_KEY}</MULE_SECURE_KEY>
+						</properties>
 						<deploymentSettings>
 							<updateStrategy>rolling</updateStrategy>
 						</deploymentSettings>
@@ -89,6 +92,9 @@
 					</execution>
 				</executions>
 				<configuration>
+					<environmentVariables>
+						<MULE_SECURE_KEY>${MULE_SECURE_KEY}</MULE_SECURE_KEY>
+					</environmentVariables>
 					<coverage>
 						<runCoverage>true</runCoverage>
 						<formats>
@@ -198,12 +204,6 @@
 			<id>mulesoft-releases</id>
 			<name>MuleSoft Releases Repository</name>
 			<url>https://repository.mulesoft.org/nexus/repository/releases/</url>
-			<layout>default</layout>
-		</repository>
-		<repository>
-			<id>mulesoft-private</id>
-			<name>MuleSoft Private Repository</name>
-			<url>https://repository.mulesoft.org/nexus/content/repositories/private/</url>
 			<layout>default</layout>
 		</repository>
 	</repositories>
