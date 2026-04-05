@@ -1,28 +1,36 @@
-name: Deploy to CloudHub 2.0
+name: Build and Deploy to CloudHub 2.0
 
 on:
   push:
-    branches:
-      - '**'
+    branches: [ main ]
   pull_request:
     types: [closed]
     branches:
       - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
+    name: Build & MUnit
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      # THIS IS THE WORKAROUND Step 1: JDK & Dynamic Settings Generation
+      # This generates a standard settings.xml with credentials for publishing and deployment.
+      - name: Set up JDK 17 and Dynamic Maven Settings
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'temurin'
+          distribution: 'zulu'
+          # This ID must match the <server> tag in your pom.xml CH2 configuration block
+          server-id: anypoint-exchange-v3
+          server-username: ~~~Client~~~
+          server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
-      - name: Cache Maven packages
+      - name: Cache Maven Dependencies
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository
@@ -30,82 +38,65 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Generate Maven settings.xml
+      # Step 3: Build & Test (Local Env as requested)
+      - name: Build with Maven
         run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml <<EOF
-          <settings>
-            <servers>
-              <server>
-                <id>anypoint-exchange-v3</id>
-                <username>~~~Client~~~</username>
-                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
-      - name: Build & Test
-        # Passing env=local for MUnits as requested
-        run: |
-          mvn clean verify \
+          mvn clean package \
             -Denv=local \
-            -DMULE_SECURE_KEY=${{ secrets.MULE_SECURE_KEY }} \
-            --no-transfer-progress
+            -Dsecure.key=${{ secrets.MULE_SECURE_KEY }} \
+            -B
 
-      - name: Upload JAR artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: mule-app-jar
+          name: mule-app
           path: target/*.jar
-          retention-days: 1
 
   deploy:
+    name: Deploy to CH2.0
     needs: build
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    # Define job-level environment variables from repository secrets
+    env:
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
+      ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+      MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mule-app
+          path: target/
+
+      # THIS IS THE WORKAROUND Step 2: JDK & Dynamic Settings Generation
+      # We must use this trick again on the new runner agent to ensure deployment credentials.
+      - name: Set up JDK 17 and Dynamic Maven Settings
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          # Must match the build job ID and POM configuration
+          server-id: anypoint-exchange-v3
+          server-username: ~~~Client~~~
+          server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
-      - name: Generate Maven settings.xml
+      # Step 3: Direct-to-CloudHub-2.0 Deployment (Dev Env)
+      # Assuming you have the modern parameterizable CH2 configuration block in your pom.xml
+      - name: Deploy to CloudHub 2
         run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml <<EOF
-          <settings>
-            <servers>
-              <server>
-                <id>anypoint-exchange-v3</id>
-                <username>~~~Client~~~</username>
-                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
-      - name: Download JAR artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: mule-app-jar
-          path: target/
-
-      - name: Set short commit SHA
-        run: echo "SHORT_SHA=${GITHUB_SHA::5}" >> $GITHUB_ENV
-
-      - name: Deploy to CloudHub 2.0
-        # Passing env=dev for Deployment as requested
-        run: |
-          mvn deploy -DskipMunitTests \
-            -Danypoint.client_id="${{ secrets.ANYPOINT_CLIENT_ID }}" \
-            -Danypoint.client_secret="${{ secrets.ANYPOINT_CLIENT_SECRET }}" \
-            -Denvironment="${{ secrets.ANYPOINT_ENV_NAME }}" \
-            -Dapp.name="sapi-salesforce-implementation-${SHORT_SHA}" \
-            -Danypoint.deployment.properties="env=dev,MULE_SECURE_KEY=${{ secrets.MULE_SECURE_KEY }}" \
+          mvn deploy \
+            -DmuleDeploy \
+            -DskipTests \
             -Denv=dev \
-            --no-transfer-progress
+            -Dsecure.key=${{ secrets.MULE_SECURE_KEY }} \
+            \
+            # Modern deployment parameters \
+            -Denvironment=${{ env.ANYPOINT_ENV_NAME }} \
+            -Danypoint.org.id=${{ env.ANYPOINT_ORG_ID }} \
+            -B
