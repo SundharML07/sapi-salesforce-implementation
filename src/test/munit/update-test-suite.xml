@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="update-test-suite.xml" />
+	<munit:test name="update-success-test-suiteTest" doc:id="5edd687e-a919-4809-949c-7a3b9f4cff13">
+		<munit:behavior>
+			<munit-tools:mock-when doc:name="apikit:router" doc:id="2a334023-5a11-42f7-8df1-4e10f46cec47" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="salesforce:update" doc:id="7993f546-3f79-49fd-8fd7-6314bb6b0564" processor="salesforce:update" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Update" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bd7f8061-8717-486f-af52-64608466b737" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- readUrl("classpath://update/updateSuccessResponse.dwl")]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="b221ad69-60a9-40d9-a29a-25070ab722af" >
+				<munit:payload value='#[output application/json --- readUrl("classpath://update/updatePayload.dwl")]' mediaType="application/json" />
+				<munit:attributes value='#[output application/json --- readUrl("classpath://update/updateSetEventAttributes.dwl")]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="sapi-salesforce-main" doc:id="b7f43fde-8363-453e-aaae-6204e7b3821a" name="sapi-salesforce-main" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="5c7c33a4-88b1-4ce2-b3d6-eb5cb330df36" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="update-error-test-suiteTest" doc:id="9b31c06a-0387-4f7e-bc6c-ba309899d7ec" expectedErrorType="ANY">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="apikit:router" doc:id="d76817c2-4665-4907-b013-0a32e1138f85" processor="apikit:router">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="salesforce:update" doc:id="55e70031-b85f-49e3-905e-7a1a31aa7aaa" processor="salesforce:update">
+				<munit-tools:with-attributes>
+					<munit-tools:with-attribute whereValue="Update" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="bd7f8061-8717-486f-af52-64608466b737" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- readUrl("classpath://update/updateErrorResponse.dwl")]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="e9bec4fa-b351-4700-9a24-04a938018347" >
+				<munit:payload value='#[output application/json --- readUrl("classpath://update/updatePayload.dwl")]' mediaType="application/json" />
+				<munit:attributes value='#[output application/json --- readUrl("classpath://update/updateSetEventAttributes.dwl")]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="sapi-salesforce-main" doc:id="41983090-9398-4799-8675-71a43f744f87" name="sapi-salesforce-main"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="931b209a-b74e-48fe-8f79-02e855333455" expression="#[payload]" is="#[MunitTools::notNullValue()]"/>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="upsert-success-test-suiteTest" doc:id="0a5349f6-3a5a-44a3-b565-3f1816d96e7b">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="apikit:router" doc:id="429cf9d0-bae5-4c56-a9ea-dc0eb933fe95" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="salesforce:upsert" doc:id="7ba9c27d-fd06-4d5e-b537-6904d0e4b0b2" processor="salesforce:upsert" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Upsert" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="6e048796-2c1f-4abf-849b-119061da2b67" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- readUrl("classpath://update/upsertSuccessResponse.dwl")]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="57bf4354-ff71-43e4-a090-1ab395465c5b" >
+				<munit:payload value='#[output application/json --- readUrl("classpath://update/upsertPayload.dwl")]' mediaType="application/json" />
+				<munit:attributes value='#[output application/json --- readUrl("classpath://update/upsertSetEventAttributes.dwl")]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="sapi-salesforce-main" doc:id="6e064a60-9d23-4cb7-9215-41fe84987712" name="sapi-salesforce-main" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="5ed8f082-c850-456b-81ca-f20a912c0c5c" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+		</munit:validation>
+	</munit:test>
+	<munit:test name="upsert-error-test-suiteTest" doc:id="86683bf9-3345-463c-a4df-6bb04e699874" expectedErrorType="ANY">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="apikit:router" doc:id="4d26534b-e65d-4ff5-995c-a0b29b12a547" processor="apikit:router" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="sapi-salesforce-config" attributeName="config-ref" />
+				</munit-tools:with-attributes>
+				
+				<munit-tools:then-call flow="post:\update:application\json:sapi-salesforce-config" />
+			</munit-tools:mock-when>
+			<munit-tools:mock-when doc:name="salesforce:upsert" doc:id="fb15bf98-670d-4ee8-bf70-87f747d4992d" processor="salesforce:upsert" >
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Upsert" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="6e048796-2c1f-4abf-849b-119061da2b67" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value='#[output application/json --- readUrl("classpath://update/upsertErrorResponse.dwl")]' mediaType="application/json" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+		</munit:behavior>
+		<munit:execution >
+			<munit:set-event doc:name="Set Event" doc:id="671e2dad-461e-495c-b929-57deac59a1cc" >
+				<munit:payload value='#[output application/json --- readUrl("classpath://update/upsertPayload.dwl")]' mediaType="application/json" />
+				<munit:attributes value='#[output application/json --- readUrl("classpath://update/upsertSetEventAttributes.dwl")]' mediaType="application/json" />
+			</munit:set-event>
+			<flow-ref doc:name="sapi-salesforce-main" doc:id="ec94ed30-4f5e-4473-949b-b303c5afebe6" name="sapi-salesforce-main" />
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert-that doc:name="Assert that" doc:id="f6d5307a-4fb8-4a86-af43-70f0d050a955" expression="#[payload]" is="#[MunitTools::notNullValue()]" />
+		</munit:validation>
+	</munit:test>
+
+</mule>

@@ -1,0 +1,422 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ============================================================
+    FILE: mcp-tools.xml
+    ============================================================
+    This file exposes the existing sapi-salesforce Salesforce
+    flows as MCP Tools, making them discoverable and invokable
+    by any MCP-compatible AI agent (Claude, Cursor, Agentforce).
+
+    ARCHITECTURE:
+        MCP Client (AI Agent)
+               │  /mcp  (Streamable HTTP)
+               ▼
+        [mcp:tool-listener] ← This file
+               │  flow-ref
+               ▼
+        [createFlow / queryFlow / updateFlow] ← Your existing flows
+               │
+               ▼
+        Salesforce CRM
+
+    TOOLS EXPOSED:
+        1. salesforce-create-record  → calls createFlow
+        2. salesforce-query-records  → calls queryFlow
+        3. salesforce-update-record  → calls updateFlow (operation=update)
+        4. salesforce-upsert-record  → calls updateFlow (operation=upsert)
+
+    PREREQUISITES:
+        - MCP Connector 1.3.0 added to pom.xml
+        - global.xml updated with Salesforce_MCP_Server config
+        - This file placed in src/main/mule/
+    ============================================================
+-->
+<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/mcp
+        http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
+
+
+    <!-- ============================================================
+         TOOL 1: salesforce-create-record
+         Wraps: createFlow in create.xml
+         ============================================================
+         createFlow expects:
+           - vars.originalQueryParams.objectname  → Salesforce SObject type
+           - payload (as Java List)               → field values JSON
+         ============================================================ -->
+    <flow name="mcp-tool-create-record" doc:name="MCP Tool: Create Salesforce Record">
+
+        <mcp:tool-listener
+            doc:name="Tool Listener: Create Record"
+            doc:id="mcp-tool-create-001"
+            config-ref="Salesforce_MCP_Server"
+            name="salesforce-create-record">
+
+            <mcp:description><![CDATA[Creates a new record in Salesforce.
+Use this tool when the user wants to CREATE, ADD, or INSERT a new record.
+Supported object types: Lead, Contact, Account, Opportunity, Case, and any custom SObject.
+The fields parameter must contain valid Salesforce field API names and values.
+For Lead: required fields are LastName and Company.
+For Contact: required field is LastName.
+For Account: required field is Name.
+For Opportunity: required fields are Name, StageName, and CloseDate.]]></mcp:description>
+
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties":
+    {
+        "objectname":
+        {
+            "type": "string",
+            "description": "The Salesforce SObject API name of the record to create. Examples: Lead, Contact, Account, Opportunity, Case. Case-sensitive."
+        },
+        "fields":
+        {
+            "type": "object",
+            "description": "A JSON object of Salesforce field API names and their values to set on the new record. Example: {\"FirstName\": \"John\", \"LastName\": \"Smith\", \"Company\": \"Acme Corp\", \"Email\": \"john@acme.com\"}"
+        }
+    },
+    "required":
+    [
+        "objectname",
+        "fields"
+    ]
+}]]></mcp:parameters-schema>
+
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[payload.^raw]"/>
+            </mcp:responses>
+
+            <mcp:on-error-responses>
+                <mcp:text-tool-response-content text="#['Error creating Salesforce record: ' ++ error.description]"/>
+            </mcp:on-error-responses>
+
+        </mcp:tool-listener>
+
+        <!-- Map MCP tool input parameters to match what createFlow expects -->
+        <ee:transform doc:name="Map MCP Input → createFlow vars" doc:id="mcp-create-transform-001">
+            <ee:message>
+                <!-- createFlow expects payload as a Java list with the fields object -->
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload.fields]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <!-- createFlow reads objectname from vars.originalQueryParams.objectname -->
+                <ee:set-variable variableName="originalQueryParams"><![CDATA[%dw 2.0
+output application/java
+---
+{
+    objectname: payload.objectname
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- Delegate to existing createFlow (create.xml) - no changes needed there -->
+        <flow-ref doc:name="Call createFlow" doc:id="mcp-create-flowref-001" name="createFlow"/>
+
+        <!-- Format response back to MCP client -->
+        <ee:transform doc:name="Format Create Response" doc:id="mcp-create-response-001">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+    </flow>
+
+
+    <!-- ============================================================
+         TOOL 2: salesforce-query-records
+         Wraps: queryFlow in query.xml
+         ============================================================
+         queryFlow expects:
+           - vars.originalQueryParams.soql → SOQL query string
+         ============================================================ -->
+    <flow name="mcp-tool-query-records" doc:name="MCP Tool: Query Salesforce Records">
+
+        <mcp:tool-listener
+            doc:name="Tool Listener: Query Records"
+            doc:id="mcp-tool-query-001"
+            config-ref="Salesforce_MCP_Server"
+            name="salesforce-query-records">
+
+            <mcp:description><![CDATA[Queries Salesforce records using a SOQL query.
+Use this tool when the user wants to SEARCH, FIND, LIST, COUNT, or RETRIEVE existing records from Salesforce.
+Build a valid SOQL query using SELECT, FROM, and optionally WHERE, ORDER BY, and LIMIT clauses.
+SOQL examples:
+  - SELECT Id, Name, Email FROM Lead WHERE Company = 'Acme Corp'
+  - SELECT Id, Name, StageName, Amount FROM Opportunity WHERE StageName != 'Closed Lost' ORDER BY Amount DESC LIMIT 10
+  - SELECT COUNT() FROM Case WHERE Status = 'Open'
+  - SELECT Id, Name FROM Account WHERE CreatedDate = THIS_MONTH]]></mcp:description>
+
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties":
+    {
+        "soql":
+        {
+            "type": "string",
+            "description": "A valid SOQL (Salesforce Object Query Language) query string. Must start with SELECT and include FROM clause. Example: SELECT Id, Name, Email FROM Lead WHERE Company = 'Acme Corp' LIMIT 50"
+        }
+    },
+    "required":
+    [
+        "soql"
+    ]
+}]]></mcp:parameters-schema>
+
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[payload.^raw]"/>
+            </mcp:responses>
+
+            <mcp:on-error-responses>
+                <mcp:text-tool-response-content text="#['Error querying Salesforce: ' ++ error.description]"/>
+            </mcp:on-error-responses>
+
+        </mcp:tool-listener>
+
+        <!-- Map MCP tool input to match what queryFlow expects -->
+        <ee:transform doc:name="Map MCP Input → queryFlow vars" doc:id="mcp-query-transform-001">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <!-- queryFlow reads soql from vars.originalQueryParams.soql -->
+                <ee:set-variable variableName="originalQueryParams"><![CDATA[%dw 2.0
+output application/java
+---
+{
+    soql: payload.soql
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- Delegate to existing queryFlow (query.xml) - no changes needed there -->
+        <flow-ref doc:name="Call queryFlow" doc:id="mcp-query-flowref-001" name="queryFlow"/>
+
+        <!-- Format response back to MCP client -->
+        <ee:transform doc:name="Format Query Response" doc:id="mcp-query-response-001">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+    </flow>
+
+
+    <!-- ============================================================
+         TOOL 3: salesforce-update-record
+         Wraps: updateFlow in update.xml (operation=update branch)
+         ============================================================
+         updateFlow expects:
+           - vars.originalQueryParams.objectname  → SObject type
+           - vars.originalQueryParams.operation   → "update"
+           - payload (as Java List)               → fields including Id
+         ============================================================ -->
+    <flow name="mcp-tool-update-record" doc:name="MCP Tool: Update Salesforce Record">
+
+        <mcp:tool-listener
+            doc:name="Tool Listener: Update Record"
+            doc:id="mcp-tool-update-001"
+            config-ref="Salesforce_MCP_Server"
+            name="salesforce-update-record">
+
+            <mcp:description><![CDATA[Updates an existing Salesforce record using the record's Id.
+Use this tool when the user wants to MODIFY, CHANGE, EDIT, or UPDATE fields on an existing record
+and the Salesforce record Id is known.
+The fields parameter MUST include the Salesforce record 'Id' field (18-character ID).
+Only the fields provided will be updated; other fields remain unchanged.
+Supported object types: Lead, Contact, Account, Opportunity, Case, and any custom SObject.
+Example fields: {"Id": "00Q000000000001AAA", "Status": "Working", "Rating": "Hot"}]]></mcp:description>
+
+            <mcp:parameters-schema><![CDATA[{
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "type": "object",
+                "properties": {
+                    "objectname": {
+                        "type": "string",
+                        "description": "The Salesforce SObject API name of the record to update. Examples: Lead, Contact, Account, Opportunity, Case."
+                    },
+                    "fields": {
+                        "type": "object",
+                        "description": "A JSON object containing the Salesforce record 'Id' field (required) plus all fields to update. Example: {\"Id\": \"00Q000000000001AAA\", \"Status\": \"Working\", \"StageName\": \"Closed Won\"}"
+                    }
+                },
+                "required": ["objectname", "fields"]
+            }]]></mcp:parameters-schema>
+
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[payload.^raw]"/>
+            </mcp:responses>
+
+            <mcp:on-error-responses>
+                <mcp:text-tool-response-content text="#['Error updating Salesforce record: ' ++ error.description]"/>
+            </mcp:on-error-responses>
+
+        </mcp:tool-listener>
+
+        <!-- Map MCP tool input to match what updateFlow expects -->
+        <ee:transform doc:name="Map MCP Input → updateFlow vars (update)" doc:id="mcp-update-transform-001">
+            <ee:message>
+                <!-- updateFlow expects payload as Java list -->
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[payload.fields]]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <!-- updateFlow reads objectname and operation from vars.originalQueryParams -->
+                <ee:set-variable variableName="originalQueryParams"><![CDATA[%dw 2.0
+output application/java
+---
+{
+    objectname: payload.objectname,
+    operation : "update"
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- Delegate to existing updateFlow (update.xml) - takes the update branch -->
+        <flow-ref doc:name="Call updateFlow (update)" doc:id="mcp-update-flowref-001" name="updateFlow"/>
+
+        <!-- Format response back to MCP client -->
+        <ee:transform doc:name="Format Update Response" doc:id="mcp-update-response-001">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+    </flow>
+
+
+    <!-- ============================================================
+         TOOL 4: salesforce-upsert-record
+         Wraps: updateFlow in update.xml (operation=upsert branch)
+         ============================================================
+         updateFlow expects:
+           - vars.originalQueryParams.objectname        → SObject type
+           - vars.originalQueryParams.operation         → "upsert"
+           - vars.originalQueryParams.externalidfieldname → External ID field
+           - payload (as Java List)                     → fields with ext ID value
+         ============================================================ -->
+    <flow name="mcp-tool-upsert-record" doc:name="MCP Tool: Upsert Salesforce Record">
+
+        <mcp:tool-listener
+            doc:name="Tool Listener: Upsert Record"
+            doc:id="mcp-tool-upsert-001"
+            config-ref="Salesforce_MCP_Server"
+            name="salesforce-upsert-record">
+
+            <mcp:description><![CDATA[Upserts a Salesforce record — creates it if it does not exist, or updates it if it does,
+matching on an external ID field.
+Use this tool when:
+  - The user wants to UPSERT using an external identifier (not the Salesforce Id)
+  - You need to sync data from an external system using an external ID field
+  - The record may or may not already exist in Salesforce
+The externalidfieldname is the API name of the custom external ID field on the SObject (e.g. External_ID__c).
+The fields parameter must include the external ID field value to match on, plus all other fields to set.
+Supported object types: Lead, Contact, Account, Opportunity, Case, and any custom SObject with an external ID field.
+]]></mcp:description>
+
+            <mcp:parameters-schema><![CDATA[{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties":
+    {
+        "objectname":
+        {
+            "type": "string",
+            "description": "The Salesforce SObject API name. Examples: Lead, Contact, Account, Opportunity."
+        },
+        "externalidfieldname":
+        {
+            "type": "string",
+            "description": "The API name of the external ID field on the SObject used to match the record. Example: External_ID__c or CRM_ID__c. This field must be marked as External ID in Salesforce."
+        },
+        "fields":
+        {
+            "type": "object",
+            "description": "A JSON object containing the external ID field value (for matching) plus all fields to create or update. Example: {\"External_ID__c\": \"EXT-001\", \"LastName\": \"Smith\", \"Company\": \"Acme Corp\", \"Email\": \"smith@acme.com\"}"
+        }
+    },
+    "required":
+    [
+        "objectname",
+        "externalidfieldname",
+        "fields"
+    ]
+}]]></mcp:parameters-schema>
+
+            <mcp:responses>
+                <mcp:text-tool-response-content text="#[payload.^raw]"/>
+            </mcp:responses>
+
+            <mcp:on-error-responses>
+                <mcp:text-tool-response-content text="#['Error upserting Salesforce record: ' ++ error.description]"/>
+            </mcp:on-error-responses>
+
+        </mcp:tool-listener>
+
+        <!-- Map MCP tool input to match what updateFlow expects for the upsert branch -->
+        <ee:transform doc:name="Map MCP Input → updateFlow vars (upsert)" doc:id="mcp-upsert-transform-001">
+            <ee:message>
+                <!-- updateFlow expects payload as Java list -->
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+[payload.fields]]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <!-- updateFlow reads objectname, operation and externalidfieldname from vars.originalQueryParams -->
+                <ee:set-variable variableName="originalQueryParams"><![CDATA[%dw 2.0
+output application/java
+---
+{
+    objectname         : payload.objectname,
+    operation          : "upsert",
+    externalidfieldname: payload.externalidfieldname
+}]]></ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+
+        <!-- Delegate to existing updateFlow (update.xml) - takes the upsert branch -->
+        <flow-ref doc:name="Call updateFlow (upsert)" doc:id="mcp-upsert-flowref-001" name="updateFlow"/>
+
+        <!-- Format response back to MCP client -->
+        <ee:transform doc:name="Format Upsert Response" doc:id="mcp-upsert-response-001">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+
+    </flow>
+
+</mule>

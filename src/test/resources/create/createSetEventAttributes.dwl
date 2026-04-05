@@ -1,0 +1,6 @@
+{
+	"headers":{},
+	"queryParams":{
+		"objectname": "Account"
+	}
+}

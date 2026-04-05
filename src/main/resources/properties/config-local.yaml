@@ -1,0 +1,10 @@
+salesforce:
+  username: "sundhar.um@mindful-bear-go16kv.com"
+  password: "![ZqaNbCvneIUhWl6gdcXqpw==]"
+  token: "![sckZlLu2V6gW7Yzn53KU4WvPkhmvq33nsyDS1DVZU4M=]"
+
+http:
+  host: "localhost"
+  port: "8081"
+  readTimeout: "30000"
+  connectTimeout: "30000"

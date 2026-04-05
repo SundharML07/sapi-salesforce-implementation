@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="updateFlow" doc:id="2d527e7e-c1bf-4a88-99d2-210f83e71aed" >
+		<logger level="INFO" doc:name="Logger" doc:id="35a70de8-31dc-4e30-a5c3-a653b88df4f6" message='Started #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]'/>
+		<set-variable value="#[vars.originalQueryParams.objectname default '']" doc:name="objectname" doc:id="8ebf24b2-9898-4dac-adbc-dba41ec0d1e2" variableName="objectname"/>
+		<set-variable value="#[vars.originalQueryParams.operation default '']" doc:name="operation" doc:id="da01f245-e716-46f0-a0da-605be9fb1037" variableName="operation"/>
+		<choice doc:name="Choice" doc:id="7b4ae02b-9810-42f3-986f-e9a7c2348b0c" >
+			<when expression='#["upsert" == vars.operation]'>
+				<set-variable value="#[vars.originalQueryParams.externalidfieldname default '']" doc:name="externalidfieldname" doc:id="13bb5581-711a-487f-98f1-5f3487645f72" variableName="externalidfieldname"/>
+				<ee:transform doc:name="Transform Message" doc:id="ef200f1e-ef76-4ce0-8fe1-23dbc2a5c865" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:upsert doc:name="Upsert" doc:id="6e048796-2c1f-4abf-849b-119061da2b67" config-ref="Salesforce_Config" objectType="#[vars.objectname]" externalIdFieldName="#[vars.externalidfieldname]"/>
+				<set-variable value="#[((payload.items filter ((item, index) -&gt; item.payload.success == false))[0].successful) default true]" doc:name="validateUpsert" doc:id="95879541-6f6b-4184-a25e-a6a7a6a0f964" variableName="validateUpsert"/>
+				<validation:is-true doc:name="Is true" doc:id="f5cc177a-c36c-4f3d-9717-13f414bcc641" expression="#[vars.validateUpsert]" message="Salesforce Upsert Operation Failed"/>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="14862b6c-a304-40ff-9b85-21b35405e5f2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<salesforce:update doc:name="Update" doc:id="bd7f8061-8717-486f-af52-64608466b737" config-ref="Salesforce_Config" type="#[vars.objectname]"/>
+				<set-variable value="#[((payload.items filter ((item, index) -&gt; item.payload.success == false))[0].successful) default true]" doc:name="validateUpdate" doc:id="905e08eb-f48c-411b-a468-065ded884d4b" variableName="validateUpdate"/>
+				<validation:is-true doc:name="Is true" doc:id="8186136c-54c3-4e02-8c75-22e12045384c" expression="#[vars.validateUpdate]" message="Salesforce Update Operation Failed"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="Transform Message" doc:id="efbec20a-faa6-436d-b830-8d6d29b5cb6f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="7d894d89-9084-42e5-8a7e-8868fede2a9a" message='Ended #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]'/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="965aac6a-b519-4268-a35b-8cb61bcd7ba4" >
+				<ee:transform doc:name="Transform Message" doc:id="777df58d-7f51-4e89-bbec-feadcc5f0346" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/json
+var errorrecords=payload.items filter ((item, index) -> item.payload.success == false)
+---
+errorrecords map ((item, index) -> {
+    id: item.id,
+    statusCode: item.statusCode,
+    description: item.message,
+})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

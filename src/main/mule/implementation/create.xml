@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="createFlow" doc:id="5775e1f4-8b55-4ac3-91e6-53b4b8dc6a4b" >
+		<logger level="INFO" doc:name="Logger" doc:id="ea5cd3d4-ff2a-4bc3-8df0-41a645c974e1" message="Started #[flow.name] | #[payload]"/>
+		<set-variable value="#[vars.originalQueryParams.objectname default '']" doc:name="objectname" doc:id="94426060-9991-4822-a38a-65a530ea0dc0" variableName="objectname"/>
+		<ee:transform doc:name="Transform Message" doc:id="1f8d3eb5-2713-4795-812e-fbeb191e30b5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+[payload]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="df2dd956-dadf-4c2e-8f89-9d150abdd5d7" config-ref="Salesforce_Config" type="#[vars.objectname]"/>
+		<set-variable value="#[((payload.items filter ((item, index) -&gt; item.payload.success == false))[0].successful) default true]" doc:name="validateCreate" doc:id="f80b38fd-823d-4db8-99ff-1e6726ea2ec0" variableName="validateCreate"/>
+		<validation:is-true doc:name="Is true" doc:id="bd51f82f-8890-4316-b31c-09921f93c006" expression="#[vars.validateCreate]" message="Salesforce Create Operation Failed"/>
+		<ee:transform doc:name="Transform Message" doc:id="2100fb1a-f645-43c2-8feb-b7454a2185d4" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0a411b21-fba7-4f53-9d61-1d764b2304cf" message="Ended #[flow.name] | #[payload]"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e10b6ee9-af4a-4f6b-8220-4d74d4c136af" >
+				<ee:transform doc:name="Transform Message" doc:id="38f05848-5a6b-421c-ac59-cb1f2c7c27ed" >
+					<ee:message >
+					</ee:message>
+					<ee:variables >
+						<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/json
+var errorrecords=payload.items filter ((item, index) -> item.payload.success == false)
+---
+errorrecords map ((item, index) -> {
+    id: item.id,
+    statusCode: item.statusCode,
+    description: item.message,
+})]]></ee:set-variable>
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
