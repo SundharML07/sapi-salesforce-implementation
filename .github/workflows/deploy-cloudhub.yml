@@ -28,6 +28,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Generate Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
       - name: Build & Test
         run: mvn clean verify --no-transfer-progress
 
@@ -61,6 +76,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Generate Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
         with:
@@ -74,14 +104,12 @@ jobs:
         env:
           ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
-          ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
           ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
           SHORT_SHA: ${{ env.SHORT_SHA }}
         run: |
           mvn deploy -DskipTests \
             -Danypoint.client_id="${ANYPOINT_CLIENT_ID}" \
             -Danypoint.client_secret="${ANYPOINT_CLIENT_SECRET}" \
-            -Dorg.id="${ANYPOINT_ORG_ID}" \
             -Denvironment="${ANYPOINT_ENV_NAME}" \
-            -Dapp.name="your-poc-app-${SHORT_SHA}" \
+            -Dapp.name="sapi-salesforce-implementation-${SHORT_SHA}" \
             --no-transfer-progress
