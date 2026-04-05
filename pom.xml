@@ -1,23 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project
+	xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
-	<groupId>com.mycompany</groupId>
+	<groupId>${anypoint.org.id}</groupId>
 	<artifactId>sapi-salesforce-implementation</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
-
 	<name>sapi-salesforce-implementation</name>
-
+	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-
 		<app.runtime>4.11.0</app.runtime>
 		<mule.maven.plugin.version>4.7.0</mule.maven.plugin.version>
 		<munit.version>3.7.0</munit.version>
+		<!-- Anypoint identity — not a secret, safe to commit -->
+		<anypoint.org.id>23f1967a-81c4-4559-9359-591dff47e0b0</anypoint.org.id>
+		<!-- Deployment defaults for local builds — overridden by GitHub Actions at runtime -->
+		<anypoint.client_id>local-dev</anypoint.client_id>
+		<anypoint.client_secret>local-dev</anypoint.client_secret>
+		<environment>Sandbox</environment>
+		<app.name>sapi-salesforce-implementation-local</app.name>
 	</properties>
-
+	
 	<build>
 		<plugins>
 			<plugin>
@@ -32,6 +38,17 @@
 				<extensions>true</extensions>
 				<configuration>
 					<classifier>mule-application</classifier>
+					<cloudhub2Deployment>
+						<uri>https://anypoint.mulesoft.com</uri>
+						<provider>MC</provider>
+						<environment>${environment}</environment>
+						<target>Shared Space</target>
+						<businessGroupId>${anypoint.org.id}</businessGroupId>
+						<server>anypoint-exchange-v3</server>
+						<applicationName>${app.name}</applicationName>
+						<replicas>1</replicas>
+						<vCores>0.1</vCores>
+					</cloudhub2Deployment>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -59,7 +76,7 @@
 			</plugin>
 		</plugins>
 	</build>
-
+	
 	<dependencies>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
@@ -130,14 +147,23 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>7050e4fa-df9c-4ead-80c1-72c92248bee8</groupId>
+			<groupId>${anypoint.org.id}</groupId>
 			<artifactId>sapi-salesforce</artifactId>
-			<version>1.0.3</version>
+			<version>1.0.0</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
 	</dependencies>
-
+	
+	<distributionManagement>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${anypoint.org.id}/maven</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
+	
 	<repositories>
 		<repository>
 			<id>anypoint-exchange-v3</id>
@@ -152,7 +178,7 @@
 			<layout>default</layout>
 		</repository>
 	</repositories>
-
+	
 	<pluginRepositories>
 		<pluginRepository>
 			<id>mulesoft-releases</id>
@@ -164,5 +190,5 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-
+	
 </project>
