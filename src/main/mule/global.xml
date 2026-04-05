@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/
 	
 	<configuration-properties doc:name="Configuration properties" doc:id="83ca4cea-eb03-40e1-815b-69828dc26f6d" file="properties/config-global.yaml" />
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="2c572934-d634-414d-9528-03258f5c3a93" >
-		<salesforce:basic-connection username="${salesforce.username}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.token}" url="https://login.salesforce.com/services/Soap/u/64.0"/>
+		<salesforce:basic-connection username="${salesforce.username}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.token}" url="https://login.salesforce.com/services/Soap/u/63.0"/>
 	</salesforce:sfdc-config>
 	<mcp:server-config name="Salesforce_MCP_Server" doc:name="MCP Server" doc:id="7fb0adc4-66df-4a66-ba70-9798cb3398ad" serverName="Salesforce API MCP Server" serverVersion="1.0.0" >
 		<mcp:streamable-http-server-connection listenerConfig="sapi-salesforce-httpListenerConfig" />
