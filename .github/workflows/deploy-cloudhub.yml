@@ -19,6 +19,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          server-id: anypoint-exchange-v3
+          server-username: ANYPOINT_CLIENT_USERNAME
+          server-password: ANYPOINT_CLIENT_PASSWORD
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -28,26 +31,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - name: Generate Maven settings.xml
-        run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml <<EOF
-          <settings>
-            <servers>
-              <server>
-                <id>anypoint-exchange-v3</id>
-                <username>~~~Client~~~</username>
-                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
-
-      - name: Debug settings.xml
-        run: cat ~/.m2/settings.xml
-
       - name: Build & Test
         run: mvn clean verify --no-transfer-progress
+        env:
+          ANYPOINT_CLIENT_USERNAME: "~~~Client~~~"
+          ANYPOINT_CLIENT_PASSWORD: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -70,6 +58,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          server-id: anypoint-exchange-v3
+          server-username: ANYPOINT_CLIENT_USERNAME
+          server-password: ANYPOINT_CLIENT_PASSWORD
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -78,21 +69,6 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-
-      - name: Generate Maven settings.xml
-        run: |
-          mkdir -p ~/.m2
-          cat > ~/.m2/settings.xml <<EOF
-          <settings>
-            <servers>
-              <server>
-                <id>anypoint-exchange-v3</id>
-                <username>~~~Client~~~</username>
-                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
-              </server>
-            </servers>
-          </settings>
-          EOF
 
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
@@ -105,6 +81,8 @@ jobs:
 
       - name: Deploy to CloudHub 2.0
         env:
+          ANYPOINT_CLIENT_USERNAME: "~~~Client~~~"
+          ANYPOINT_CLIENT_PASSWORD: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
