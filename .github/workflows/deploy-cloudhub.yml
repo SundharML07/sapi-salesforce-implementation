@@ -3,31 +3,24 @@ name: Build and Deploy to CloudHub 2.0
 on:
   push:
     branches: [ main ]
-  pull_request:
-    types: [closed]
-    branches:
-      - main
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     name: Build & MUnit
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # THIS IS THE WORKAROUND Step 1: JDK & Dynamic Settings Generation
-      # This generates a standard settings.xml with credentials for publishing and deployment.
-      - name: Set up JDK 17 and Dynamic Maven Settings
+      - name: Set up JDK 17 and Maven Settings
         uses: actions/setup-java@v4
         with:
           java-version: '17'
-          distribution: 'zulu'
-          # This ID must match the <server> tag in your pom.xml CH2 configuration block
+          distribution: 'temurin'
           server-id: anypoint-exchange-v3
-          server-username: ~~~Client~~~
+          server-username: client
           server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
       - name: Cache Maven Dependencies
@@ -35,10 +28,7 @@ jobs:
         with:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
 
-      # Step 3: Build & Test (Local Env as requested)
       - name: Build with Maven
         run: |
           mvn clean package \
@@ -56,7 +46,7 @@ jobs:
     name: Deploy to CH2.0
     needs: build
     runs-on: ubuntu-latest
-    # Define job-level environment variables from repository secrets
+
     env:
       ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
       ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
@@ -65,38 +55,25 @@ jobs:
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: mule-app
-          path: target/
-
-      # THIS IS THE WORKAROUND Step 2: JDK & Dynamic Settings Generation
-      # We must use this trick again on the new runner agent to ensure deployment credentials.
-      - name: Set up JDK 17 and Dynamic Maven Settings
+      - name: Set up JDK 17 and Maven Settings
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-          # Must match the build job ID and POM configuration
           server-id: anypoint-exchange-v3
-          server-username: ~~~Client~~~
+          server-username: client
           server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
-      # Step 3: Direct-to-CloudHub-2.0 Deployment (Dev Env)
-      # Assuming you have the modern parameterizable CH2 configuration block in your pom.xml
       - name: Deploy to CloudHub 2
         run: |
-          mvn deploy \
+          mvn clean deploy \
             -DmuleDeploy \
             -DskipTests \
             -Denv=dev \
             -Dsecure.key=${{ secrets.MULE_SECURE_KEY }} \
-            \
-            # Modern deployment parameters \
             -Denvironment=${{ env.ANYPOINT_ENV_NAME }} \
             -Danypoint.org.id=${{ env.ANYPOINT_ORG_ID }} \
             -B

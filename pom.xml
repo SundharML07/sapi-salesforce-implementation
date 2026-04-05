@@ -45,7 +45,7 @@
 						<businessGroup>${anypoint.org.id}</businessGroup>
 						
 						<target>Cloudhub-US-East-1</target>
-						<muleVersion>${mule.version}</muleVersion>
+						<muleVersion>${app.runtime}</muleVersion>
 						
 						<server>anypoint-exchange-v3</server>
 						
