@@ -22,9 +22,6 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          server-id: anypoint-exchange-v3
-          server-username: ~~~Client~~~
-          server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
       - name: Cache Maven packages
         uses: actions/cache@v4
@@ -33,6 +30,21 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+            
+      - name: Generate Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
 
       - name: Build & Test
         run: mvn clean verify --no-transfer-progress
