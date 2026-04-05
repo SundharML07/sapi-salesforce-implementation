@@ -12,7 +12,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -30,7 +29,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-            
+
       - name: Generate Maven settings.xml
         run: |
           mkdir -p ~/.m2
@@ -47,9 +46,12 @@ jobs:
           EOF
 
       - name: Build & Test
-        run: mvn clean verify --no-transfer-progress
-        env:
-          MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
+        # Passing env=local for MUnits as requested
+        run: |
+          mvn clean verify \
+            -Denv=local \
+            -DMULE_SECURE_KEY=${{ secrets.MULE_SECURE_KEY }} \
+            --no-transfer-progress
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -60,9 +62,8 @@ jobs:
 
   deploy:
     needs: build
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -72,17 +73,21 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          server-id: anypoint-exchange-v3
-          server-username: ~~~Client~~~
-          server-password: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
 
-      - name: Cache Maven packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - name: Generate Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings>
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
 
       - name: Download JAR artifact
         uses: actions/download-artifact@v4
@@ -94,17 +99,13 @@ jobs:
         run: echo "SHORT_SHA=${GITHUB_SHA::5}" >> $GITHUB_ENV
 
       - name: Deploy to CloudHub 2.0
-        env:
-          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
-          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
-          ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
-          MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
-          SHORT_SHA: ${{ env.SHORT_SHA }}
+        # Passing env=dev for Deployment as requested
         run: |
-          mvn deploy -DskipTests \
-            -Danypoint.client_id="${ANYPOINT_CLIENT_ID}" \
-            -Danypoint.client_secret="${ANYPOINT_CLIENT_SECRET}" \
-            -Denvironment="${ANYPOINT_ENV_NAME}" \
+          mvn deploy -DskipMunitTests \
+            -Danypoint.client_id="${{ secrets.ANYPOINT_CLIENT_ID }}" \
+            -Danypoint.client_secret="${{ secrets.ANYPOINT_CLIENT_SECRET }}" \
+            -Denvironment="${{ secrets.ANYPOINT_ENV_NAME }}" \
             -Dapp.name="sapi-salesforce-implementation-${SHORT_SHA}" \
-            -Danypoint.deployment.properties="env=dev,MULE_SECURE_KEY=${MULE_SECURE_KEY}" \
+            -Danypoint.deployment.properties="env=dev,MULE_SECURE_KEY=${{ secrets.MULE_SECURE_KEY }}" \
+            -Denv=dev \
             --no-transfer-progress
