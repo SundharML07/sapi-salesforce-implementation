@@ -31,6 +31,8 @@ jobs:
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
       ANYPOINT_EXCHANGE_USERNAME: '~~~Client~~~'
       ANYPOINT_EXCHANGE_PASSWORD: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
+      MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
       CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
       CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-1' }}
       CLOUDHUB_APP_NAME: ${{ vars.CLOUDHUB_APP_NAME != '' && vars.CLOUDHUB_APP_NAME || 'sapi-salesforce-implementation' }}
@@ -52,6 +54,8 @@ jobs:
         shell: bash
         run: |
           mkdir -p "${HOME}/.m2"
+          private_repo_username="${MULESOFT_NEXUS_USERNAME:-${ANYPOINT_EXCHANGE_USERNAME}}"
+          private_repo_password="${MULESOFT_NEXUS_PASSWORD:-${ANYPOINT_EXCHANGE_PASSWORD}}"
           cat > "${HOME}/.m2/settings.xml" <<EOF
           <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -64,8 +68,8 @@ jobs:
               </server>
               <server>
                 <id>mulesoft-private</id>
-                <username>${ANYPOINT_EXCHANGE_USERNAME}</username>
-                <password>${ANYPOINT_EXCHANGE_PASSWORD}</password>
+                <username>${private_repo_username}</username>
+                <password>${private_repo_password}</password>
               </server>
             </servers>
           </settings>
