@@ -36,6 +36,7 @@ jobs:
         env:
           ANYPOINT_CLIENT_USERNAME: "~~~Client~~~"
           ANYPOINT_CLIENT_PASSWORD: ${{ secrets.ANYPOINT_CLIENT_ID }}~?~${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4
@@ -86,6 +87,7 @@ jobs:
           ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
           ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
           ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
+          MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
           SHORT_SHA: ${{ env.SHORT_SHA }}
         run: |
           mvn deploy -DskipTests \
@@ -93,4 +95,5 @@ jobs:
             -Danypoint.client_secret="${ANYPOINT_CLIENT_SECRET}" \
             -Denvironment="${ANYPOINT_ENV_NAME}" \
             -Dapp.name="sapi-salesforce-implementation-${SHORT_SHA}" \
+            -Danypoint.deployment.properties="env=dev,MULE_SECURE_KEY=${MULE_SECURE_KEY}" \
             --no-transfer-progress
