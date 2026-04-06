@@ -22,6 +22,7 @@
 		<anypoint.exchange.server.id>anypoint-exchange-v3</anypoint.exchange.server.id>
 		<environment>Sandbox</environment>
 		<cloudhub.target>Cloudhub-US-East-1</cloudhub.target>
+		<cloudhub.region>us-east-1</cloudhub.region>
 		<cloudhub.release.channel>EDGE</cloudhub.release.channel>
 		<cloudhub.java.version>17</cloudhub.java.version>
 		<app.name>sapi-salesforce-implementation</app.name>
@@ -50,6 +51,7 @@
 						<environment>${environment}</environment>
 						<businessGroupId>${anypoint.business.group.id}</businessGroupId>
 						<target>${cloudhub.target}</target>
+						<region>${cloudhub.region}</region>
 						<muleVersion>${app.runtime}</muleVersion>
 						<releaseChannel>${cloudhub.release.channel}</releaseChannel>
 						<javaVersion>${cloudhub.java.version}</javaVersion>
