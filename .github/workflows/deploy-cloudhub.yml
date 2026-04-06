@@ -81,24 +81,11 @@ jobs:
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -Danypoint.org.id="${ANYPOINT_ORG_ID}"
 
-      - name: Rename packaged Mule artifact with commit suffix
-        id: package_artifact
-        shell: bash
-        run: |
-          artifactPath=$(ls target/*mule-application.jar | head -1)
-          artifactDir=$(dirname "${artifactPath}")
-          artifactFile=$(basename "${artifactPath}")
-          artifactBase="${artifactFile%.jar}"
-          renamedArtifact="${artifactDir}/${artifactBase}-${SHORT_SHA}.jar"
-          mv "${artifactPath}" "${renamedArtifact}"
-          echo "artifact_path=${renamedArtifact}" >> "${GITHUB_OUTPUT}"
-          echo "Renamed artifact to $(basename "${renamedArtifact}")"
-
       - name: Upload deployable artifact
         uses: actions/upload-artifact@v4
         with:
           name: mule-app
-          path: ${{ steps.package_artifact.outputs.artifact_path }}
+          path: target/*.jar
           if-no-files-found: error
 
   deploy:
@@ -193,6 +180,7 @@ jobs:
             -DskipMunitTests \
             -Dmule.artifact="${artifactName}" \
             -Denv=dev \
+            -Dapp.commit.shortSha="${SHORT_SHA}" \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
             -DconnectedAppClientSecret="${ANYPOINT_CLIENT_SECRET}" \
