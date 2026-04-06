@@ -19,5 +19,5 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 	<mcp:server-config name="Salesforce_MCP_Server" doc:name="MCP Server" doc:id="7fb0adc4-66df-4a66-ba70-9798cb3398ad" serverName="Salesforce API MCP Server" serverVersion="1.0.0" >
 		<mcp:streamable-http-server-connection listenerConfig="sapi-salesforce-httpListenerConfig" />
 	</mcp:server-config>
-	<api-gateway:autodiscovery apiId="${api.instanceid}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="71392602-541f-42be-a8ab-3386ba8cfd87" flowRef="sapi-salesforce-main" />
+	<!--<api-gateway:autodiscovery apiId="${api.instanceid}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="71392602-541f-42be-a8ab-3386ba8cfd87" flowRef="sapi-salesforce-main" />-->
 </mule>
