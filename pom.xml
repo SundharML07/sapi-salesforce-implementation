@@ -61,9 +61,9 @@
 						<vCores>${cloudhub.vcores}</vCores>
 						<deploymentTimeout>${cloudhub.deployment.timeout}</deploymentTimeout>
 						<skipDeploymentVerification>false</skipDeploymentVerification>
-						<properties>
+						<secureProperties>
 							<MULE_SECURE_KEY>${MULE_SECURE_KEY}</MULE_SECURE_KEY>
-						</properties>
+						</secureProperties>
 						<deploymentSettings>
 							<updateStrategy>rolling</updateStrategy>
 						</deploymentSettings>

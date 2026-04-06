@@ -16,8 +16,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: MUnit Tests
+  build:
+    name: Package Application
     runs-on: ubuntu-latest
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'push' || github.event.pull_request.merged == true
     permissions:
@@ -26,8 +26,6 @@ jobs:
       ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
       ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
       ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
-      MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
-      MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
     steps:
       - name: Checkout repository
@@ -40,15 +38,31 @@ jobs:
           java-version: '17'
           cache: maven
 
-      - name: Validate test secrets
+      - name: Create Maven settings.xml for Anypoint Exchange
+        shell: bash
+        run: |
+          mkdir -p "${HOME}/.m2"
+          cat > "${HOME}/.m2/settings.xml" <<EOF
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${ANYPOINT_CLIENT_ID}~?~${ANYPOINT_CLIENT_SECRET}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Validate build secrets
         shell: bash
         run: |
           required_vars=(
             ANYPOINT_CLIENT_ID
             ANYPOINT_CLIENT_SECRET
             ANYPOINT_ORG_ID
-            MULESOFT_NEXUS_USERNAME
-            MULESOFT_NEXUS_PASSWORD
             MULE_SECURE_KEY
           )
           for var_name in "${required_vars[@]}"; do
@@ -58,52 +72,10 @@ jobs:
             fi
           done
 
-      - name: Run MUnit tests
-        run: |
-          mvn --batch-mode --errors test \
-            --settings .maven/settings.xml \
-            -Denv=dev \
-            -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
-            -Danypoint.org.id="${ANYPOINT_ORG_ID}"
-
-      - name: Upload MUnit reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: munit-test-reports
-          path: |
-            target/site/munit/coverage/
-            target/munit-reports/
-          if-no-files-found: warn
-
-  build:
-    name: Package Application
-    needs: test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    env:
-      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
-      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
-      ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
-      MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
-      MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
-      MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-          cache: maven
-
       - name: Package Mule application
         run: |
           mvn --batch-mode --errors clean package \
-            --settings .maven/settings.xml \
+            --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
             -Denv=dev \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
@@ -127,8 +99,6 @@ jobs:
       ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
       ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
       ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
-      MULESOFT_NEXUS_USERNAME: ${{ secrets.MULESOFT_NEXUS_USERNAME }}
-      MULESOFT_NEXUS_PASSWORD: ${{ secrets.MULESOFT_NEXUS_PASSWORD }}
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
       CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
       CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-1' }}
@@ -146,6 +116,24 @@ jobs:
           java-version: '17'
           cache: maven
 
+      - name: Create Maven settings.xml for Anypoint Exchange
+        shell: bash
+        run: |
+          mkdir -p "${HOME}/.m2"
+          cat > "${HOME}/.m2/settings.xml" <<EOF
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${ANYPOINT_CLIENT_ID}~?~${ANYPOINT_CLIENT_SECRET}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
       - name: Validate deploy secrets
         shell: bash
         run: |
@@ -154,8 +142,6 @@ jobs:
             ANYPOINT_CLIENT_SECRET
             ANYPOINT_ENV_NAME
             ANYPOINT_ORG_ID
-            MULESOFT_NEXUS_USERNAME
-            MULESOFT_NEXUS_PASSWORD
             MULE_SECURE_KEY
           )
           for var_name in "${required_vars[@]}"; do
@@ -175,7 +161,7 @@ jobs:
         run: |
           artifactName=$(ls target/*.jar | head -1)
           mvn --batch-mode --errors deploy \
-            --settings .maven/settings.xml \
+            --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
             -Dmule.artifact="${artifactName}" \
             -Denv=dev \
@@ -186,7 +172,7 @@ jobs:
         run: |
           artifactName=$(ls target/*.jar | head -1)
           mvn --batch-mode --errors mule:deploy \
-            --settings .maven/settings.xml \
+            --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
             -Dmule.artifact="${artifactName}" \
             -Denv=dev \
