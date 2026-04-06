@@ -184,7 +184,7 @@
 		<dependency>
 			<groupId>${anypoint.org.id}</groupId>
 			<artifactId>sapi-salesforce</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
