@@ -97,8 +97,7 @@ jobs:
       ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
       CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
-      CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-1' }}
-      CLOUDHUB_REGION: ${{ vars.CLOUDHUB_REGION != '' && vars.CLOUDHUB_REGION || 'us-east-1' }}
+      CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-2' }}
       CLOUDHUB_APP_NAME: ${{ vars.CLOUDHUB_APP_NAME != '' && vars.CLOUDHUB_APP_NAME || 'sapi-salesforce-implementation' }}
       CLOUDHUB_REPLICAS: ${{ vars.CLOUDHUB_REPLICAS != '' && vars.CLOUDHUB_REPLICAS || '1' }}
       CLOUDHUB_VCORES: ${{ vars.CLOUDHUB_VCORES != '' && vars.CLOUDHUB_VCORES || '0.1' }}
@@ -180,7 +179,6 @@ jobs:
             -Danypoint.business.group.id="${CLOUDHUB_BUSINESS_GROUP_ID}" \
             -Denvironment="${ANYPOINT_ENV_NAME}" \
             -Dcloudhub.target="${CLOUDHUB_TARGET}" \
-            -Dcloudhub.region="${CLOUDHUB_REGION}" \
             -Dapp.name="${CLOUDHUB_APP_NAME}" \
             -Dcloudhub.replicas="${CLOUDHUB_REPLICAS}" \
             -Dcloudhub.vcores="${CLOUDHUB_VCORES}"

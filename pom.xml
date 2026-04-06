@@ -3,9 +3,9 @@
 	xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>${anypoint.business.group.id}</groupId>
+	<groupId>23f1967a-81c4-4559-9359-591dff47e0b0</groupId>
 	<artifactId>sapi-salesforce-implementation</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<packaging>mule-application</packaging>
 	<name>sapi-salesforce-implementation</name>
 	
@@ -21,8 +21,7 @@
 		<anypoint.platform.uri>https://anypoint.mulesoft.com</anypoint.platform.uri>
 		<anypoint.exchange.server.id>anypoint-exchange-v3</anypoint.exchange.server.id>
 		<environment>Sandbox</environment>
-		<cloudhub.target>Cloudhub-US-East-1</cloudhub.target>
-		<cloudhub.region>us-east-1</cloudhub.region>
+		<cloudhub.target>Cloudhub-US-East-2</cloudhub.target>
 		<cloudhub.release.channel>EDGE</cloudhub.release.channel>
 		<cloudhub.java.version>17</cloudhub.java.version>
 		<app.name>sapi-salesforce-implementation</app.name>
@@ -51,7 +50,6 @@
 						<environment>${environment}</environment>
 						<businessGroupId>${anypoint.business.group.id}</businessGroupId>
 						<target>${cloudhub.target}</target>
-						<region>${cloudhub.region}</region>
 						<muleVersion>${app.runtime}</muleVersion>
 						<releaseChannel>${cloudhub.release.channel}</releaseChannel>
 						<javaVersion>${cloudhub.java.version}</javaVersion>
