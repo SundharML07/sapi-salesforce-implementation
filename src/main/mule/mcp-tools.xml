@@ -72,7 +72,7 @@ For Account: required field is Name.
 For Opportunity: required fields are Name, StageName, and CloseDate.]]></mcp:description>
 
             <mcp:parameters-schema><![CDATA[{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "# SECURITY: Remote schema removed (http://json-schema.org/draft-07/schema#)",
     "type": "object",
     "properties":
     {
@@ -99,7 +99,7 @@ For Opportunity: required fields are Name, StageName, and CloseDate.]]></mcp:des
             </mcp:responses>
 
             <mcp:on-error-responses>
-                <mcp:text-tool-response-content text="#['Error creating Salesforce record: ' ++ error.description]"/>
+                <mcp:text-tool-response-content text="Error creating Salesforce record. Please check your input parameters and try again."/>
             </mcp:on-error-responses>
 
         </mcp:tool-listener>
@@ -165,7 +165,7 @@ SOQL examples:
   - SELECT Id, Name FROM Account WHERE CreatedDate = THIS_MONTH]]></mcp:description>
 
             <mcp:parameters-schema><![CDATA[{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "# SECURITY: Remote schema removed (http://json-schema.org/draft-07/schema#)",
     "type": "object",
     "properties":
     {
@@ -186,7 +186,7 @@ SOQL examples:
             </mcp:responses>
 
             <mcp:on-error-responses>
-                <mcp:text-tool-response-content text="#['Error querying Salesforce: ' ++ error.description]"/>
+                <mcp:text-tool-response-content text="Error querying Salesforce. Please check your SOQL syntax and try again."/>
             </mcp:on-error-responses>
 
         </mcp:tool-listener>
@@ -252,7 +252,7 @@ Supported object types: Lead, Contact, Account, Opportunity, Case, and any custo
 Example fields: {"Id": "00Q000000000001AAA", "Status": "Working", "Rating": "Hot"}]]></mcp:description>
 
             <mcp:parameters-schema><![CDATA[{
-                "$schema": "http://json-schema.org/draft-07/schema#",
+                "$schema": "# SECURITY: Remote schema removed (http://json-schema.org/draft-07/schema#)",
                 "type": "object",
                 "properties": {
                     "objectname": {
@@ -272,7 +272,7 @@ Example fields: {"Id": "00Q000000000001AAA", "Status": "Working", "Rating": "Hot
             </mcp:responses>
 
             <mcp:on-error-responses>
-                <mcp:text-tool-response-content text="#['Error updating Salesforce record: ' ++ error.description]"/>
+                <mcp:text-tool-response-content text="Error updating Salesforce record. Please check the record ID and field values."/>
             </mcp:on-error-responses>
 
         </mcp:tool-listener>
@@ -344,7 +344,7 @@ Supported object types: Lead, Contact, Account, Opportunity, Case, and any custo
 ]]></mcp:description>
 
             <mcp:parameters-schema><![CDATA[{
-    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$schema": "# SECURITY: Remote schema removed (http://json-schema.org/draft-07/schema#)",
     "type": "object",
     "properties":
     {
@@ -377,7 +377,7 @@ Supported object types: Lead, Contact, Account, Opportunity, Case, and any custo
             </mcp:responses>
 
             <mcp:on-error-responses>
-                <mcp:text-tool-response-content text="#['Error upserting Salesforce record: ' ++ error.description]"/>
+                <mcp:text-tool-response-content text="Error upserting Salesforce record. Please check the external ID field and values."/>
             </mcp:on-error-responses>
 
         </mcp:tool-listener>
