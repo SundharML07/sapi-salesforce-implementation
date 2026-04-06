@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
-	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:mcp="http://www.mulesoft.org/schema/mule/mcp"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
-http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd">
+http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/current/mule-mcp.xsd
+http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
 	<global-property doc:name="Global Property" doc:id="2eed6f85-5bab-4fef-a0c1-46a00df56fd9" name="env" value="local" />
 	<configuration-properties doc:name="Configuration properties" doc:id="81fa4089-9fcf-4c54-8c57-b585a7cb16a3" file="properties/config-${env}.yaml" />
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b2964842-83a9-4479-8822-55823f500576" file="properties/config-${env}.yaml" key='${MULE_SECURE_KEY}' >
@@ -18,4 +19,5 @@ http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/
 	<mcp:server-config name="Salesforce_MCP_Server" doc:name="MCP Server" doc:id="7fb0adc4-66df-4a66-ba70-9798cb3398ad" serverName="Salesforce API MCP Server" serverVersion="1.0.0" >
 		<mcp:streamable-http-server-connection listenerConfig="sapi-salesforce-httpListenerConfig" />
 	</mcp:server-config>
+	<api-gateway:autodiscovery apiId="${api.instanceid}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="71392602-541f-42be-a8ab-3386ba8cfd87" flowRef="sapi-salesforce-main" />
 </mule>

@@ -5,13 +5,13 @@
     </http:listener-config>
     <apikit:config name="sapi-salesforce-config" api="${api.id}" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
     <flow name="sapi-salesforce-main">
-        <http:listener config-ref="sapi-salesforce-httpListenerConfig" path="/api/*">
+        <http:listener config-ref="sapi-salesforce-httpListenerConfig" path="/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:response>
             <http:error-response statusCode="#[vars.httpStatus default 500]">
-                <http:body>#[payload]</http:body>
-                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
             </http:error-response>
         </http:listener>
         <ee:transform doc:name="Transform Message" doc:id="cc4dd012-2005-4750-b978-4ee013f74229">
