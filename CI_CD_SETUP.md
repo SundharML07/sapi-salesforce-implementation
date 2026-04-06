@@ -12,7 +12,7 @@ The pipeline currently:
 
 1. Triggers only when a pull request into `main` is merged.
 2. Builds the Mule application with Maven.
-3. Renames the packaged JAR to include the first 5 characters of the commit SHA.
+3. Packages the JAR with the first 5 characters of the commit SHA in the file name.
 4. Skips MUnit tests in CI.
 5. Publishes the generated artifact to Anypoint Exchange.
 6. Deploys the artifact to CloudHub 2.0.
@@ -106,7 +106,7 @@ No committed `.maven` folder is required for the current pipeline.
 
 ## Artifact Naming Convention
 
-After packaging, the workflow renames the generated JAR to include the first 5 characters of the Git commit SHA.
+During packaging, the workflow sets Maven `finalName` so the generated JAR includes the first 5 characters of the Git commit SHA.
 
 Example:
 
@@ -114,11 +114,18 @@ Example:
 
 This makes it easier to correlate a deployed artifact with the commit that produced it.
 
-The renamed file is then used for:
+This is done during the `mvn clean package` step instead of by renaming the file afterward, so the same file name is used consistently for:
 
-1. workflow artifact upload
-2. Exchange publish
-3. CloudHub 2.0 deployment
+1. artifact generation
+2. workflow artifact upload
+3. Exchange publish
+4. CloudHub 2.0 deployment
+
+The workflow computes the short SHA and uses Maven `finalName` like this:
+
+```bash
+-DfinalName="sapi-salesforce-implementation-${SHORT_SHA}"
+```
 
 ## pom.xml Configuration
 
@@ -206,6 +213,7 @@ Using a `-SNAPSHOT` version allows repeated CI publishes during ongoing developm
 mvn --batch-mode --errors clean package \
   --settings "${HOME}/.m2/settings.xml" \
   -DskipMunitTests \
+  -DfinalName="sapi-salesforce-implementation-${SHORT_SHA}" \
   -Denv=dev \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -Danypoint.org.id="${ANYPOINT_ORG_ID}"
@@ -217,7 +225,7 @@ mvn --batch-mode --errors clean package \
 mvn --batch-mode --errors deploy \
   --settings "${HOME}/.m2/settings.xml" \
   -DskipMunitTests \
-  -Dmule.artifact="${artifactName}" \
+  -Dmule.artifact="target/sapi-salesforce-implementation-${SHORT_SHA}.jar" \
   -Denv=dev \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -Danypoint.org.id="${ANYPOINT_ORG_ID}"
@@ -229,7 +237,7 @@ mvn --batch-mode --errors deploy \
 mvn --batch-mode --errors mule:deploy \
   --settings "${HOME}/.m2/settings.xml" \
   -DskipMunitTests \
-  -Dmule.artifact="${artifactName}" \
+  -Dmule.artifact="target/sapi-salesforce-implementation-${SHORT_SHA}.jar" \
   -Denv=dev \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
@@ -262,7 +270,7 @@ Use this checklist if you want to rebuild the pipeline from scratch:
 7. Add `MULE_SECURE_KEY` to `mule-artifact.json` as a secure property.
 8. Use a workflow that:
    - builds the artifact
-   - renames the JAR with a short commit suffix
+   - packages the JAR with a short commit suffix
    - uploads the built JAR
    - publishes to Exchange
    - deploys to CloudHub 2.0
