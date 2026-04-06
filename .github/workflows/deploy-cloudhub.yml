@@ -77,6 +77,18 @@ jobs:
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -Danypoint.org.id="${ANYPOINT_ORG_ID}"
 
+      - name: Rename packaged artifact with commit suffix
+        shell: bash
+        run: |
+          shortSha="${GITHUB_SHA::5}"
+          artifactPath=$(ls target/*.jar | head -1)
+          artifactDir=$(dirname "${artifactPath}")
+          artifactFile=$(basename "${artifactPath}")
+          artifactBase="${artifactFile%.jar}"
+          renamedArtifact="${artifactDir}/${artifactBase}-${shortSha}.jar"
+          mv "${artifactPath}" "${renamedArtifact}"
+          echo "Renamed artifact to $(basename "${renamedArtifact}")"
+
       - name: Upload deployable artifact
         uses: actions/upload-artifact@v4
         with:

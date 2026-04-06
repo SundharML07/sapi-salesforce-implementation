@@ -12,9 +12,10 @@ The pipeline currently:
 
 1. Triggers only when a pull request into `main` is merged.
 2. Builds the Mule application with Maven.
-3. Skips MUnit tests in CI.
-4. Publishes the generated artifact to Anypoint Exchange.
-5. Deploys the artifact to CloudHub 2.0.
+3. Renames the packaged JAR to include the first 5 characters of the commit SHA.
+4. Skips MUnit tests in CI.
+5. Publishes the generated artifact to Anypoint Exchange.
+6. Deploys the artifact to CloudHub 2.0.
 
 ## Why MUnit Is Skipped
 
@@ -102,6 +103,22 @@ It uses:
 - password: `${ANYPOINT_CLIENT_ID}~?~${ANYPOINT_CLIENT_SECRET}`
 
 No committed `.maven` folder is required for the current pipeline.
+
+## Artifact Naming Convention
+
+After packaging, the workflow renames the generated JAR to include the first 5 characters of the Git commit SHA.
+
+Example:
+
+- `sapi-salesforce-implementation-abc12.jar`
+
+This makes it easier to correlate a deployed artifact with the commit that produced it.
+
+The renamed file is then used for:
+
+1. workflow artifact upload
+2. Exchange publish
+3. CloudHub 2.0 deployment
 
 ## pom.xml Configuration
 
@@ -245,6 +262,7 @@ Use this checklist if you want to rebuild the pipeline from scratch:
 7. Add `MULE_SECURE_KEY` to `mule-artifact.json` as a secure property.
 8. Use a workflow that:
    - builds the artifact
+   - renames the JAR with a short commit suffix
    - uploads the built JAR
    - publishes to Exchange
    - deploys to CloudHub 2.0
