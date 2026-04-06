@@ -12,10 +12,11 @@ The pipeline currently:
 
 1. Triggers only when a pull request into `main` is merged.
 2. Builds the Mule application with Maven.
-3. Packages the Mule application, then renames the generated JAR to include the first 5 characters of the commit SHA.
+3. Computes the first 5 characters of the commit SHA during the workflow.
 4. Skips MUnit tests in CI.
 5. Publishes the generated artifact to Anypoint Exchange.
 6. Deploys the artifact to CloudHub 2.0.
+7. Sends the short commit SHA to CloudHub as an application property for traceability.
 
 ## Why MUnit Is Skipped
 
@@ -104,30 +105,25 @@ It uses:
 
 No committed `.maven` folder is required for the current pipeline.
 
-## Artifact Naming Convention
+## Commit Traceability
 
-After packaging, the workflow locates the actual Mule-generated JAR and renames it to include the first 5 characters of the Git commit SHA.
+CloudHub 2.0 does not reliably preserve the uploaded JAR file name in the Runtime Manager UI. Even if the workflow uploads a renamed file, the UI can still display the canonical application filename.
 
-Example:
+Because of that, the pipeline now uses a more reliable approach:
 
-- `sapi-salesforce-implementation-abc12.jar`
+1. package the normal Mule JAR
+2. compute the first 5 characters of the commit SHA
+3. send that value to CloudHub as an application property
 
-This makes it easier to correlate a deployed artifact with the commit that produced it.
+The property name is:
 
-This is done immediately after the `mvn clean package` step, because Mule Maven Plugin generates its own artifact name for `mule-application` packaging. The workflow then renames that exact file so the same suffixed JAR is used consistently for:
+- `commit.shortSha`
 
-1. artifact generation
-2. workflow artifact upload
-3. Exchange publish
-4. CloudHub 2.0 deployment
+Example value:
 
-The workflow computes the short SHA, finds the generated `*mule-application.jar`, and renames it like this:
+- `3e845`
 
-```bash
-artifactPath=$(ls target/*mule-application.jar | head -1)
-artifactBase="$(basename "${artifactPath}" .jar)"
-mv "${artifactPath}" "target/${artifactBase}-${SHORT_SHA}.jar"
-```
+This makes it easier to trace a deployment back to the commit that produced it without depending on the CloudHub UI file label.
 
 ## pom.xml Configuration
 
@@ -140,7 +136,8 @@ The main settings in `pom.xml` are:
 5. `javaVersion` set to `17`
 6. Connected App authentication under `cloudhub2Deployment`
 7. `env=dev` passed as a CloudHub application property
-8. `MULE_SECURE_KEY` passed as a CloudHub secure property
+8. `commit.shortSha` passed as a CloudHub application property
+9. `MULE_SECURE_KEY` passed as a CloudHub secure property
 
 Important note:
 
@@ -182,6 +179,35 @@ Important note:
 - the deploy property is still sent to CloudHub so it is visible in the application properties
 - if you later want runtime profile switching to be fully driven by deployment, `global.xml` would need to stop hardcoding `env=local`
 
+## Application Property for Commit SHA
+
+The deployment is also configured to send the short Git commit SHA as a CloudHub application property:
+
+- `commit.shortSha`
+
+This is defined in `pom.xml` under the CloudHub 2.0 deployment configuration:
+
+```xml
+<properties>
+  <env>${app.env}</env>
+  <commit.shortSha>${app.commit.shortSha}</commit.shortSha>
+</properties>
+```
+
+with:
+
+```xml
+<app.commit.shortSha>local</app.commit.shortSha>
+```
+
+During CI/CD deployment, the workflow overrides this with:
+
+```bash
+-Dapp.commit.shortSha="${SHORT_SHA}"
+```
+
+The `local` default simply keeps the Maven configuration valid for local packaging when no CI commit SHA is being passed.
+
 ## Current Versioning Strategy
 
 The project version is currently:
@@ -220,14 +246,6 @@ mvn --batch-mode --errors clean package \
   -Danypoint.org.id="${ANYPOINT_ORG_ID}"
 ```
 
-After packaging:
-
-```bash
-artifactPath=$(ls target/*mule-application.jar | head -1)
-artifactBase="$(basename "${artifactPath}" .jar)"
-mv "${artifactPath}" "target/${artifactBase}-${SHORT_SHA}.jar"
-```
-
 ### Publish to Exchange
 
 ```bash
@@ -248,6 +266,7 @@ mvn --batch-mode --errors mule:deploy \
   -DskipMunitTests \
   -Dmule.artifact="$(ls target/*.jar | head -1)" \
   -Denv=dev \
+  -Dapp.commit.shortSha="${SHORT_SHA}" \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
   -DconnectedAppClientSecret="${ANYPOINT_CLIENT_SECRET}" \
@@ -279,10 +298,11 @@ Use this checklist if you want to rebuild the pipeline from scratch:
 7. Add `MULE_SECURE_KEY` to `mule-artifact.json` as a secure property.
 8. Use a workflow that:
    - builds the artifact
-   - packages the JAR with a short commit suffix
+   - computes a short commit SHA for traceability
    - uploads the built JAR
    - publishes to Exchange
    - deploys to CloudHub 2.0
+   - passes `commit.shortSha` as an app property during deploy
 9. Skip MUnit in CI unless enterprise repository access is available.
 
 ## Common Failures and Fixes
