@@ -11,7 +11,6 @@ http://www.mulesoft.org/schema/mule/mcp http://www.mulesoft.org/schema/mule/mcp/
 	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="b2964842-83a9-4479-8822-55823f500576" file="properties/config-${env}.yaml" key='${MULE_SECURE_KEY}' >
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
-	
 	<configuration-properties doc:name="Configuration properties" doc:id="83ca4cea-eb03-40e1-815b-69828dc26f6d" file="properties/config-global.yaml" />
 	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="2c572934-d634-414d-9528-03258f5c3a93" >
 		<salesforce:basic-connection username="${salesforce.username}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.token}" url="https://login.salesforce.com/services/Soap/u/63.0"/>
