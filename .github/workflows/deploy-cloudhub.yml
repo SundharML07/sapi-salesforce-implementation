@@ -27,6 +27,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Compute short commit SHA
+        shell: bash
+        run: echo "SHORT_SHA=${GITHUB_SHA::5}" >> "${GITHUB_ENV}"
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -73,27 +77,16 @@ jobs:
           mvn --batch-mode --errors clean package \
             --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
+            -DfinalName="sapi-salesforce-implementation-${SHORT_SHA}" \
             -Denv=dev \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -Danypoint.org.id="${ANYPOINT_ORG_ID}"
-
-      - name: Rename packaged artifact with commit suffix
-        shell: bash
-        run: |
-          shortSha="${GITHUB_SHA::5}"
-          artifactPath=$(ls target/*.jar | head -1)
-          artifactDir=$(dirname "${artifactPath}")
-          artifactFile=$(basename "${artifactPath}")
-          artifactBase="${artifactFile%.jar}"
-          renamedArtifact="${artifactDir}/${artifactBase}-${shortSha}.jar"
-          mv "${artifactPath}" "${renamedArtifact}"
-          echo "Renamed artifact to $(basename "${renamedArtifact}")"
 
       - name: Upload deployable artifact
         uses: actions/upload-artifact@v4
         with:
           name: mule-app
-          path: target/*.jar
+          path: target/sapi-salesforce-implementation-${{ env.SHORT_SHA }}.jar
           if-no-files-found: error
 
   deploy:
@@ -116,6 +109,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Compute short commit SHA
+        shell: bash
+        run: echo "SHORT_SHA=${GITHUB_SHA::5}" >> "${GITHUB_ENV}"
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -167,7 +164,7 @@ jobs:
 
       - name: Publish artifact to Anypoint Exchange
         run: |
-          artifactName=$(ls target/*.jar | head -1)
+          artifactName="target/sapi-salesforce-implementation-${SHORT_SHA}.jar"
           mvn --batch-mode --errors deploy \
             --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
@@ -178,7 +175,7 @@ jobs:
 
       - name: Deploy to CloudHub 2.0
         run: |
-          artifactName=$(ls target/*.jar | head -1)
+          artifactName="target/sapi-salesforce-implementation-${SHORT_SHA}.jar"
           mvn --batch-mode --errors mule:deploy \
             --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
