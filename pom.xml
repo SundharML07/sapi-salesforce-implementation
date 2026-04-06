@@ -25,6 +25,7 @@
 		<cloudhub.release.channel>EDGE</cloudhub.release.channel>
 		<cloudhub.java.version>17</cloudhub.java.version>
 		<app.name>sapi-salesforce-implementation</app.name>
+		<app.env>dev</app.env>
 		<cloudhub.replicas>1</cloudhub.replicas>
 		<cloudhub.vcores>0.1</cloudhub.vcores>
 		<cloudhub.deployment.timeout>1800000</cloudhub.deployment.timeout>
@@ -61,6 +62,9 @@
 						<vCores>${cloudhub.vcores}</vCores>
 						<deploymentTimeout>${cloudhub.deployment.timeout}</deploymentTimeout>
 						<skipDeploymentVerification>false</skipDeploymentVerification>
+						<properties>
+							<env>${app.env}</env>
+						</properties>
 						<secureProperties>
 							<MULE_SECURE_KEY>${MULE_SECURE_KEY}</MULE_SECURE_KEY>
 						</secureProperties>
