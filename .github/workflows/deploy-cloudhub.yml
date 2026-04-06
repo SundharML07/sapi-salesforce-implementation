@@ -77,16 +77,28 @@ jobs:
           mvn --batch-mode --errors clean package \
             --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
-            -DfinalName="sapi-salesforce-implementation-${SHORT_SHA}" \
             -Denv=dev \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -Danypoint.org.id="${ANYPOINT_ORG_ID}"
+
+      - name: Rename packaged Mule artifact with commit suffix
+        id: package_artifact
+        shell: bash
+        run: |
+          artifactPath=$(ls target/*mule-application.jar | head -1)
+          artifactDir=$(dirname "${artifactPath}")
+          artifactFile=$(basename "${artifactPath}")
+          artifactBase="${artifactFile%.jar}"
+          renamedArtifact="${artifactDir}/${artifactBase}-${SHORT_SHA}.jar"
+          mv "${artifactPath}" "${renamedArtifact}"
+          echo "artifact_path=${renamedArtifact}" >> "${GITHUB_OUTPUT}"
+          echo "Renamed artifact to $(basename "${renamedArtifact}")"
 
       - name: Upload deployable artifact
         uses: actions/upload-artifact@v4
         with:
           name: mule-app
-          path: target/sapi-salesforce-implementation-${{ env.SHORT_SHA }}.jar
+          path: ${{ steps.package_artifact.outputs.artifact_path }}
           if-no-files-found: error
 
   deploy:
@@ -164,7 +176,7 @@ jobs:
 
       - name: Publish artifact to Anypoint Exchange
         run: |
-          artifactName="target/sapi-salesforce-implementation-${SHORT_SHA}.jar"
+          artifactName=$(ls target/*.jar | head -1)
           mvn --batch-mode --errors deploy \
             --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \
@@ -175,7 +187,7 @@ jobs:
 
       - name: Deploy to CloudHub 2.0
         run: |
-          artifactName="target/sapi-salesforce-implementation-${SHORT_SHA}.jar"
+          artifactName=$(ls target/*.jar | head -1)
           mvn --batch-mode --errors mule:deploy \
             --settings "${HOME}/.m2/settings.xml" \
             -DskipMunitTests \

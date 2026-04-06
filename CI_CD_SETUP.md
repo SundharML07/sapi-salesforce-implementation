@@ -12,7 +12,7 @@ The pipeline currently:
 
 1. Triggers only when a pull request into `main` is merged.
 2. Builds the Mule application with Maven.
-3. Packages the JAR with the first 5 characters of the commit SHA in the file name.
+3. Packages the Mule application, then renames the generated JAR to include the first 5 characters of the commit SHA.
 4. Skips MUnit tests in CI.
 5. Publishes the generated artifact to Anypoint Exchange.
 6. Deploys the artifact to CloudHub 2.0.
@@ -106,7 +106,7 @@ No committed `.maven` folder is required for the current pipeline.
 
 ## Artifact Naming Convention
 
-During packaging, the workflow sets Maven `finalName` so the generated JAR includes the first 5 characters of the Git commit SHA.
+After packaging, the workflow locates the actual Mule-generated JAR and renames it to include the first 5 characters of the Git commit SHA.
 
 Example:
 
@@ -114,17 +114,19 @@ Example:
 
 This makes it easier to correlate a deployed artifact with the commit that produced it.
 
-This is done during the `mvn clean package` step instead of by renaming the file afterward, so the same file name is used consistently for:
+This is done immediately after the `mvn clean package` step, because Mule Maven Plugin generates its own artifact name for `mule-application` packaging. The workflow then renames that exact file so the same suffixed JAR is used consistently for:
 
 1. artifact generation
 2. workflow artifact upload
 3. Exchange publish
 4. CloudHub 2.0 deployment
 
-The workflow computes the short SHA and uses Maven `finalName` like this:
+The workflow computes the short SHA, finds the generated `*mule-application.jar`, and renames it like this:
 
 ```bash
--DfinalName="sapi-salesforce-implementation-${SHORT_SHA}"
+artifactPath=$(ls target/*mule-application.jar | head -1)
+artifactBase="$(basename "${artifactPath}" .jar)"
+mv "${artifactPath}" "target/${artifactBase}-${SHORT_SHA}.jar"
 ```
 
 ## pom.xml Configuration
@@ -213,10 +215,17 @@ Using a `-SNAPSHOT` version allows repeated CI publishes during ongoing developm
 mvn --batch-mode --errors clean package \
   --settings "${HOME}/.m2/settings.xml" \
   -DskipMunitTests \
-  -DfinalName="sapi-salesforce-implementation-${SHORT_SHA}" \
   -Denv=dev \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -Danypoint.org.id="${ANYPOINT_ORG_ID}"
+```
+
+After packaging:
+
+```bash
+artifactPath=$(ls target/*mule-application.jar | head -1)
+artifactBase="$(basename "${artifactPath}" .jar)"
+mv "${artifactPath}" "target/${artifactBase}-${SHORT_SHA}.jar"
 ```
 
 ### Publish to Exchange
@@ -225,7 +234,7 @@ mvn --batch-mode --errors clean package \
 mvn --batch-mode --errors deploy \
   --settings "${HOME}/.m2/settings.xml" \
   -DskipMunitTests \
-  -Dmule.artifact="target/sapi-salesforce-implementation-${SHORT_SHA}.jar" \
+  -Dmule.artifact="$(ls target/*.jar | head -1)" \
   -Denv=dev \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -Danypoint.org.id="${ANYPOINT_ORG_ID}"
@@ -237,7 +246,7 @@ mvn --batch-mode --errors deploy \
 mvn --batch-mode --errors mule:deploy \
   --settings "${HOME}/.m2/settings.xml" \
   -DskipMunitTests \
-  -Dmule.artifact="target/sapi-salesforce-implementation-${SHORT_SHA}.jar" \
+  -Dmule.artifact="$(ls target/*.jar | head -1)" \
   -Denv=dev \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
