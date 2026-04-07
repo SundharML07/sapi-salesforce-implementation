@@ -17,6 +17,7 @@ The pipeline currently:
 5. Publishes the generated artifact to Anypoint Exchange.
 6. Deploys the artifact to CloudHub 2.0.
 7. Sends the short commit SHA to CloudHub as an application property for traceability.
+8. Sends Anypoint platform autodiscovery properties required by API Manager tracking.
 
 ## Why MUnit Is Skipped
 
@@ -52,7 +53,9 @@ Create these repository secrets in GitHub:
 2. `ANYPOINT_CLIENT_SECRET`
 3. `ANYPOINT_ENV_NAME`
 4. `ANYPOINT_ORG_ID`
-5. `MULE_SECURE_KEY`
+5. `ANYPOINT_PLATFORM_CLIENT_ID`
+6. `ANYPOINT_PLATFORM_CLIENT_SECRET`
+7. `MULE_SECURE_KEY`
 
 ## Optional GitHub Variables
 
@@ -137,7 +140,9 @@ The main settings in `pom.xml` are:
 6. Connected App authentication under `cloudhub2Deployment`
 7. `env=dev` passed as a CloudHub application property
 8. `commit.shortSha` passed as a CloudHub application property
-9. `MULE_SECURE_KEY` passed as a CloudHub secure property
+9. `anypoint.platform.base_uri` passed as a CloudHub application property
+10. `MULE_SECURE_KEY` passed as a CloudHub secure property
+11. `anypoint.platform.client_id` and `anypoint.platform.client_secret` passed as CloudHub secure properties
 
 Important note:
 
@@ -151,7 +156,12 @@ Important note:
 1. In `pom.xml` under `secureProperties`
 2. In `mule-artifact.json` under `secureProperties`
 
-This ensures the decryption key is treated as a secure property in CloudHub.
+The same secure-property pattern is also used for:
+
+1. `anypoint.platform.client_id`
+2. `anypoint.platform.client_secret`
+
+This ensures the decryption key and autodiscovery client credentials are treated as secure properties in CloudHub.
 
 ## Application Property for `env`
 
@@ -207,6 +217,44 @@ During CI/CD deployment, the workflow overrides this with:
 ```
 
 The `local` default simply keeps the Maven configuration valid for local packaging when no CI commit SHA is being passed.
+
+## Autodiscovery Platform Properties
+
+To support API Manager autodiscovery and tracking, the deployment also sends these Anypoint platform properties:
+
+Application property:
+
+- `anypoint.platform.base_uri=https://anypoint.mulesoft.com`
+
+Secure properties:
+
+- `anypoint.platform.client_id`
+- `anypoint.platform.client_secret`
+
+This is defined in `pom.xml` under the CloudHub 2.0 deployment configuration:
+
+```xml
+<properties>
+  <env>${app.env}</env>
+  <commit.shortSha>${app.commit.shortSha}</commit.shortSha>
+  <anypoint.platform.base_uri>${anypoint.platform.base_uri}</anypoint.platform.base_uri>
+</properties>
+
+<secureProperties>
+  <MULE_SECURE_KEY>${MULE_SECURE_KEY}</MULE_SECURE_KEY>
+  <anypoint.platform.client_id>${anypoint.platform.client_id}</anypoint.platform.client_id>
+  <anypoint.platform.client_secret>${anypoint.platform.client_secret}</anypoint.platform.client_secret>
+</secureProperties>
+```
+
+During CI/CD deployment, the workflow passes:
+
+```bash
+-Danypoint.platform.client_id="${ANYPOINT_PLATFORM_CLIENT_ID}"
+-Danypoint.platform.client_secret="${ANYPOINT_PLATFORM_CLIENT_SECRET}"
+```
+
+These values should come from GitHub Actions secrets.
 
 ## Current Versioning Strategy
 
@@ -267,6 +315,8 @@ mvn --batch-mode --errors mule:deploy \
   -Dmule.artifact="$(ls target/*.jar | head -1)" \
   -Denv=dev \
   -Dapp.commit.shortSha="${SHORT_SHA}" \
+  -Danypoint.platform.client_id="${ANYPOINT_PLATFORM_CLIENT_ID}" \
+  -Danypoint.platform.client_secret="${ANYPOINT_PLATFORM_CLIENT_SECRET}" \
   -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
   -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
   -DconnectedAppClientSecret="${ANYPOINT_CLIENT_SECRET}" \
@@ -303,6 +353,7 @@ Use this checklist if you want to rebuild the pipeline from scratch:
    - publishes to Exchange
    - deploys to CloudHub 2.0
    - passes `commit.shortSha` as an app property during deploy
+   - passes Anypoint autodiscovery platform properties during deploy
 9. Skip MUnit in CI unless enterprise repository access is available.
 
 ## Common Failures and Fixes
