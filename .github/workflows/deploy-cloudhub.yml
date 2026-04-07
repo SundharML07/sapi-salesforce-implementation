@@ -99,6 +99,8 @@ jobs:
       ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
       ANYPOINT_ENV_NAME: ${{ secrets.ANYPOINT_ENV_NAME }}
       ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+      ANYPOINT_PLATFORM_CLIENT_ID: ${{ secrets.ANYPOINT_PLATFORM_CLIENT_ID }}
+      ANYPOINT_PLATFORM_CLIENT_SECRET: ${{ secrets.ANYPOINT_PLATFORM_CLIENT_SECRET }}
       MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
       CLOUDHUB_BUSINESS_GROUP_ID: ${{ vars.ANYPOINT_BUSINESS_GROUP_ID != '' && vars.ANYPOINT_BUSINESS_GROUP_ID || secrets.ANYPOINT_ORG_ID }}
       CLOUDHUB_TARGET: ${{ vars.CLOUDHUB_TARGET != '' && vars.CLOUDHUB_TARGET || 'Cloudhub-US-East-2' }}
@@ -146,6 +148,8 @@ jobs:
             ANYPOINT_CLIENT_SECRET
             ANYPOINT_ENV_NAME
             ANYPOINT_ORG_ID
+            ANYPOINT_PLATFORM_CLIENT_ID
+            ANYPOINT_PLATFORM_CLIENT_SECRET
             MULE_SECURE_KEY
           )
           for var_name in "${required_vars[@]}"; do
@@ -181,6 +185,8 @@ jobs:
             -Dmule.artifact="${artifactName}" \
             -Denv=dev \
             -Dapp.commit.shortSha="${SHORT_SHA}" \
+            -Danypoint.platform.client_id="${ANYPOINT_PLATFORM_CLIENT_ID}" \
+            -Danypoint.platform.client_secret="${ANYPOINT_PLATFORM_CLIENT_SECRET}" \
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -DconnectedAppClientId="${ANYPOINT_CLIENT_ID}" \
             -DconnectedAppClientSecret="${ANYPOINT_CLIENT_SECRET}" \
