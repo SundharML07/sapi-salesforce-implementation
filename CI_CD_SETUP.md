@@ -141,8 +141,10 @@ The main settings in `pom.xml` are:
 7. `env=dev` passed as a CloudHub application property
 8. `commit.shortSha` passed as a CloudHub application property
 9. `anypoint.platform.base_uri` passed as a CloudHub application property
-10. `MULE_SECURE_KEY` passed as a CloudHub secure property
-11. `anypoint.platform.client_id` and `anypoint.platform.client_secret` passed as CloudHub secure properties
+10. `anypoint.platform.config.analytics.agent.enabled` passed as a CloudHub application property
+11. `anypoint.platform.analytics_base_url` passed as a CloudHub application property
+12. `MULE_SECURE_KEY` passed as a CloudHub secure property
+13. `anypoint.platform.client_id` and `anypoint.platform.client_secret` passed as CloudHub secure properties
 
 Important note:
 
@@ -224,7 +226,9 @@ To support API Manager autodiscovery and tracking, the deployment also sends the
 
 Application property:
 
-- `anypoint.platform.base_uri=https://anypoint.mulesoft.com`
+- `anypoint.platform.base_uri=https://anypoint.mulesoft.com/`
+- `anypoint.platform.config.analytics.agent.enabled=true`
+- `anypoint.platform.analytics_base_url=https://analytics-ingest.anypoint.mulesoft.com/`
 
 Secure properties:
 
@@ -238,6 +242,8 @@ This is defined in `pom.xml` under the CloudHub 2.0 deployment configuration:
   <env>${app.env}</env>
   <commit.shortSha>${app.commit.shortSha}</commit.shortSha>
   <anypoint.platform.base_uri>${anypoint.platform.base_uri}</anypoint.platform.base_uri>
+  <anypoint.platform.config.analytics.agent.enabled>${anypoint.platform.config.analytics.agent.enabled}</anypoint.platform.config.analytics.agent.enabled>
+  <anypoint.platform.analytics_base_url>${anypoint.platform.analytics_base_url}</anypoint.platform.analytics_base_url>
 </properties>
 
 <secureProperties>
