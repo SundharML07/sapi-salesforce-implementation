@@ -19,7 +19,9 @@
 		<anypoint.org.id>23f1967a-81c4-4559-9359-591dff47e0b0</anypoint.org.id>
 		<anypoint.business.group.id>${anypoint.org.id}</anypoint.business.group.id>
 		<anypoint.platform.uri>https://anypoint.mulesoft.com</anypoint.platform.uri>
-		<anypoint.platform.base_uri>https://anypoint.mulesoft.com</anypoint.platform.base_uri>
+		<anypoint.platform.base_uri>https://anypoint.mulesoft.com/</anypoint.platform.base_uri>
+		<anypoint.platform.config.analytics.agent.enabled>true</anypoint.platform.config.analytics.agent.enabled>
+		<anypoint.platform.analytics_base_url>https://analytics-ingest.anypoint.mulesoft.com/</anypoint.platform.analytics_base_url>
 		<anypoint.platform.client_id>local-client-id</anypoint.platform.client_id>
 		<anypoint.platform.client_secret>local-client-secret</anypoint.platform.client_secret>
 		<anypoint.exchange.server.id>anypoint-exchange-v3</anypoint.exchange.server.id>
@@ -70,6 +72,8 @@
 							<env>${app.env}</env>
 							<commit.shortSha>${app.commit.shortSha}</commit.shortSha>
 							<anypoint.platform.base_uri>${anypoint.platform.base_uri}</anypoint.platform.base_uri>
+							<anypoint.platform.config.analytics.agent.enabled>${anypoint.platform.config.analytics.agent.enabled}</anypoint.platform.config.analytics.agent.enabled>
+							<anypoint.platform.analytics_base_url>${anypoint.platform.analytics_base_url}</anypoint.platform.analytics_base_url>
 						</properties>
 						<secureProperties>
 							<MULE_SECURE_KEY>${MULE_SECURE_KEY}</MULE_SECURE_KEY>
