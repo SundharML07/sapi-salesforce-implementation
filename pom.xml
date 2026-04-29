@@ -198,6 +198,11 @@
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
+		<dependency>
+		    <groupId>com.splunk.logging</groupId>
+		    <artifactId>splunk-library-javalogging</artifactId>
+		    <version>1.11.8</version>
+		</dependency>
 	</dependencies>
 	
 	<distributionManagement>
@@ -221,6 +226,11 @@
 			<name>MuleSoft Releases Repository</name>
 			<url>https://repository.mulesoft.org/nexus/repository/releases/</url>
 			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>splunk-artifactory</id> 
+			<name>Splunk Releases</name>
+			<url>https://splunk.jfrog.io/splunk/ext-releases-local</url>
 		</repository>
 	</repositories>
 	

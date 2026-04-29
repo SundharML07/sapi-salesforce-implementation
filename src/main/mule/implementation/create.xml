@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<flow name="createFlow" doc:id="5775e1f4-8b55-4ac3-91e6-53b4b8dc6a4b" >
-		<logger level="INFO" doc:name="Logger" doc:id="ea5cd3d4-ff2a-4bc3-8df0-41a645c974e1" message="Started #[flow.name] | #[payload]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ea5cd3d4-ff2a-4bc3-8df0-41a645c974e1" message="Started #[flow.name] | #[payload]" category="${category.infoLog}"/>
 		<set-variable value="#[vars.originalQueryParams.objectname default '']" doc:name="objectname" doc:id="94426060-9991-4822-a38a-65a530ea0dc0" variableName="objectname"/>
 		<ee:transform doc:name="Transform Message" doc:id="1f8d3eb5-2713-4795-812e-fbeb191e30b5" >
 			<ee:message >
@@ -28,7 +28,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="0a411b21-fba7-4f53-9d61-1d764b2304cf" message="Ended #[flow.name] | #[payload]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0a411b21-fba7-4f53-9d61-1d764b2304cf" message="Ended #[flow.name] | #[payload]" category="${category.debugLog}"/>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e10b6ee9-af4a-4f6b-8220-4d74d4c136af" >
 				<ee:transform doc:name="Transform Message" doc:id="38f05848-5a6b-421c-ac59-cb1f2c7c27ed" >

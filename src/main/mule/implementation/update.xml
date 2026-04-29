@@ -7,7 +7,7 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<flow name="updateFlow" doc:id="2d527e7e-c1bf-4a88-99d2-210f83e71aed" >
-		<logger level="INFO" doc:name="Logger" doc:id="35a70de8-31dc-4e30-a5c3-a653b88df4f6" message='Started #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="35a70de8-31dc-4e30-a5c3-a653b88df4f6" message='Started #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]' category="${category.infoLog}"/>
 		<set-variable value="#[vars.originalQueryParams.objectname default '']" doc:name="objectname" doc:id="8ebf24b2-9898-4dac-adbc-dba41ec0d1e2" variableName="objectname"/>
 		<set-variable value="#[vars.originalQueryParams.operation default '']" doc:name="operation" doc:id="da01f245-e716-46f0-a0da-605be9fb1037" variableName="operation"/>
 		<choice doc:name="Choice" doc:id="7b4ae02b-9810-42f3-986f-e9a7c2348b0c" >
@@ -47,7 +47,7 @@ output application/json
 payload]]></ee:set-payload>
 					</ee:message>
 				</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="7d894d89-9084-42e5-8a7e-8868fede2a9a" message='Ended #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]'/>
+		<logger level="INFO" doc:name="Logger" doc:id="7d894d89-9084-42e5-8a7e-8868fede2a9a" message='Ended #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]' category="${category.debugLog}"/>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="965aac6a-b519-4268-a35b-8cb61bcd7ba4" >
 				<ee:transform doc:name="Transform Message" doc:id="777df58d-7f51-4e89-bbec-feadcc5f0346" >
