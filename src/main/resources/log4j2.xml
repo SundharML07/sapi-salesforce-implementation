@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Configuration>
+<Configuration status="INFO" name="cloudhub"
+    packages="com.mulesoft.ch.logging.appender,com.splunk.logging,org.apache.logging.log4j">
 
-    <!--These are some of the loggers you can enable. 
-        There are several more you can find in the documentation. 
+    <!--These are some of the loggers you can enable.
+        There are several more you can find in the documentation.
         Besides this log4j configuration, you can also use Java VM environment variables
-        to enable other logs like network (-Djavax.net.debug=ssl or all) and 
-        Garbage Collector (-XX:+PrintGC). These will be append to the console, so you will 
+        to enable other logs like network (-Djavax.net.debug=ssl or all) and
+        Garbage Collector (-XX:+PrintGC). These will be append to the console, so you will
         see them in the mule_ee.log file. -->
 
     <Appenders>
@@ -15,6 +16,18 @@
             <SizeBasedTriggeringPolicy size="10 MB"/>
             <DefaultRolloverStrategy max="10"/>
         </RollingFile>
+
+        <!-- Splunk HTTP Event Collector Appender -->
+        <SplunkHttp name="splunk"
+                    url="http://localhost:8088"
+                    token="bf7c6d3f-5b42-4e8f-9f09-0d5d21fe02e0"
+                    index="mulelog"
+                    source="sapi-salesforce-implementation"
+                    sourcetype="poc:dev"
+                    messageFormat="text"
+                    disableCertificateValidation="true">
+            <PatternLayout pattern="%-5p %d [%t] [processor: %X{processorPath}; event: %X{correlationId}] %c: %m%n"/>
+        </SplunkHttp>
     </Appenders>
 
     <Loggers>
@@ -26,9 +39,18 @@
 
         <!-- Mule logger -->
         <AsyncLogger name="org.mule.runtime.core.internal.processor.LoggerMessageProcessor" level="INFO"/>
+        
+        <!-- Sensitive info — file + Splunk -->
+	    <AsyncLogger name="com.myorg.sapi.salesforce.logging.sensitive" level="INFO" additivity="true">
+	    </AsyncLogger>
+	
+	    <!-- Non-sensitive info — file + Splunk -->
+	    <AsyncLogger name="com.myorg.sapi.salesforce.logging.nonsensitive" level="INFO" additivity="true">
+	    </AsyncLogger>
 
         <AsyncRoot level="INFO">
             <AppenderRef ref="file"/>
+            <AppenderRef ref="splunk"/>
         </AsyncRoot>
     </Loggers>
 

@@ -6,7 +6,7 @@
 http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="queryFlow" doc:id="3601f3f8-54bc-4d7f-b7ae-edf78f793472" >
-		<logger level="INFO" doc:name="Logger" doc:id="63709c37-0d7f-4a8e-8788-41bafe7464f0" message="Started Query Flow | Query = #[vars.originalQueryParams.soql]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="63709c37-0d7f-4a8e-8788-41bafe7464f0" message="Started Query Flow | Query = #[vars.originalQueryParams.soql]" category='${category.infoLog}'/>
 		<set-variable value="#[vars.originalQueryParams.soql]" doc:name="query" doc:id="cbf100cd-882a-4b86-8bb1-6533f4bf4072" variableName="query"/>
 		<salesforce:query doc:id="b2637966-87ed-4836-adf2-71be66828ab7" config-ref="Salesforce_Config">
 			<salesforce:salesforce-query ><![CDATA[#[vars.query]]]></salesforce:salesforce-query>
@@ -19,6 +19,6 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
-		<logger level="INFO" doc:name="Logger" doc:id="9610e8e5-57bc-449a-b85b-a327ab63162b" message="Ended Query Flow | Query = #[payload]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="9610e8e5-57bc-449a-b85b-a327ab63162b" message="Ended Query Flow | Query = #[payload]" category='${category.debugLog}'/>
 	</flow>
 </mule>
