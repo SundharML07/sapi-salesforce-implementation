@@ -1,8 +1,8 @@
 salesforce:
-  username: "sundhar.um@mindful-bear-go16kv.com"
-  password: "![ZqaNbCvneIUhWl6gdcXqpw==]"
-  token: "![0X7mq2BJ+oji9pMuU8QOA5f6UaKq8+xFHCLINvOjzpU=]"
-
+  client_id: "![1agaqCFPc7qHbIgmLXBDAdjjSCIOFu/RqmYvVNQ/ilomxxpgD3V4L9cvaPNEstSrcue/GEZxuWO/iHLp5SG2gMarh2VpMJEJAyj4o0msQ4TzWG4VRBbJHA==]"
+  client_secret: "![DS/WYCtD7SdnYJ7XT4rDwWUbhqgqufkR5+/odNPQWdrIWY3gu44iykAueTVICMohbVX/twf651PT/j8PPTpmry+ZasTJAugJ]"
+  token_url: "![I4Fm94Iwpsx0bGqKVbXWoPiet0s5+VwY4ezsOzxYMeVAS7NIVs7CbQ8nthaX5g0NdwJ7tUSv8tPG0uYrvV161m+2JOO3EyCAtRnb0k19hmTJqbYwf4kVXQ==]"
+  
 http:
   host: "localhost"
   port: "8081"
