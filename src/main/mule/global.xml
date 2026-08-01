@@ -22,4 +22,5 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		<mcp:streamable-http-server-connection listenerConfig="sapi-salesforce-httpListenerConfig" />
 	</mcp:server-config>
 	<api-gateway:autodiscovery apiId="${api.instanceid}" ignoreBasePath="true" doc:name="API Autodiscovery" doc:id="71392602-541f-42be-a8ab-3386ba8cfd87" flowRef="sapi-salesforce-main" />
+	<configuration doc:name="Configuration" doc:id="989c608b-059e-42e6-9f1a-02f7aeb11464" defaultErrorHandler-ref="global-error-handler" />
 </mule>

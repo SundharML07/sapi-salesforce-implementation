@@ -49,7 +49,7 @@ payload]]></ee:set-payload>
 				</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="7d894d89-9084-42e5-8a7e-8868fede2a9a" message='Ended #[flow.name] | #[vars.originalQueryParams.operation default "update"] Operation | #[payload]'/>
 		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="965aac6a-b519-4268-a35b-8cb61bcd7ba4" >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="965aac6a-b519-4268-a35b-8cb61bcd7ba4" type="VALIDATION:INVALID_BOOLEAN">
 				<ee:transform doc:name="Transform Message" doc:id="777df58d-7f51-4e89-bbec-feadcc5f0346" >
 					<ee:message >
 					</ee:message>

@@ -30,7 +30,7 @@ payload]]></ee:set-payload>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="0a411b21-fba7-4f53-9d61-1d764b2304cf" message="Ended #[flow.name] | #[payload]"/>
 		<error-handler >
-			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e10b6ee9-af4a-4f6b-8220-4d74d4c136af" >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="e10b6ee9-af4a-4f6b-8220-4d74d4c136af" type="VALIDATION:INVALID_BOOLEAN">
 				<ee:transform doc:name="Transform Message" doc:id="38f05848-5a6b-421c-ac59-cb1f2c7c27ed" >
 					<ee:message >
 					</ee:message>
