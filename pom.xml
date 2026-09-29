@@ -1,14 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>5dbdd855-7a22-4e25-8a74-845d1cb84b81</groupId>
+	<groupId>e9cf8785-2ca2-4f6e-8534-30f478a1c408</groupId>
 	<artifactId>sapi-salesforce-implementation</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>mule-application</packaging>
 	<name>sapi-salesforce-implementation</name>
-	
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -16,7 +13,7 @@
 		<mule.maven.plugin.version>4.8.0</mule.maven.plugin.version>
 		<munit.version>3.7.0</munit.version>
 		<!-- Anypoint identity -->
-		<anypoint.org.id>5dbdd855-7a22-4e25-8a74-845d1cb84b81</anypoint.org.id>
+		<anypoint.org.id>e9cf8785-2ca2-4f6e-8534-30f478a1c408</anypoint.org.id>
 		<anypoint.business.group.id>${anypoint.org.id}</anypoint.business.group.id>
 		<anypoint.platform.uri>https://anypoint.mulesoft.com</anypoint.platform.uri>
 		<anypoint.platform.base_uri>https://anypoint.mulesoft.com/</anypoint.platform.base_uri>
@@ -36,7 +33,6 @@
 		<cloudhub.vcores>0.1</cloudhub.vcores>
 		<cloudhub.deployment.timeout>1800000</cloudhub.deployment.timeout>
 	</properties>
-	
 	<build>
 		<plugins>
 			<plugin>
@@ -121,7 +117,6 @@
 			</plugin>
 		</plugins>
 	</build>
-	
 	<dependencies>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
@@ -199,7 +194,6 @@
 			<type>zip</type>
 		</dependency>
 	</dependencies>
-	
 	<distributionManagement>
 		<repository>
 			<id>${anypoint.exchange.server.id}</id>
@@ -208,7 +202,6 @@
 			<layout>default</layout>
 		</repository>
 	</distributionManagement>
-	
 	<repositories>
 		<repository>
 			<id>${anypoint.exchange.server.id}</id>
@@ -223,7 +216,6 @@
 			<layout>default</layout>
 		</repository>
 	</repositories>
-	
 	<pluginRepositories>
 		<pluginRepository>
 			<id>mulesoft-releases</id>
@@ -235,5 +227,4 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-	
 </project>
