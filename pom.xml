@@ -10,7 +10,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<app.runtime>4.12.3</app.runtime>
-		<mule.maven.plugin.version>4.8.0</mule.maven.plugin.version>
+		<mule.maven.plugin.version>4.10.0</mule.maven.plugin.version>
 		<munit.version>3.7.0</munit.version>
 		<!-- Anypoint identity -->
 		<anypoint.org.id>e9cf8785-2ca2-4f6e-8534-30f478a1c408</anypoint.org.id>
