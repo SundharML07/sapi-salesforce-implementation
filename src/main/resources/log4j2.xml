@@ -20,8 +20,8 @@
         <!-- Splunk HTTP Event Collector Appender -->
         <SplunkHttp name="splunk"
                     url="http://localhost:8088"
-                    token="bf7c6d3f-5b42-4e8f-9f09-0d5d21fe02e0"
-                    index="mulelog"
+                    token="49e31dbe-cb07-4dbb-9a81-8e54ea5f957d"
+                    index="index_mule"
                     source="sapi-salesforce-implementation"
                     sourcetype="poc:dev"
                     messageFormat="text"

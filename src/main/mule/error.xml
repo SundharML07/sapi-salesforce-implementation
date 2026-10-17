@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="error-final-response" doc:id="30ad7297-db67-46d1-894c-08904d92f986" >
+		<ee:transform doc:name="Transform Message" doc:id="062e06ac-5c3b-43c9-bba3-0d9ff83013a9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "meta": {
+    "message": vars.outMetaMessage,
+    "status": vars.outMetaStatus,
+    "code": vars.outMetaCode
+  },
+  "data": vars.outData
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</sub-flow>
+	<error-handler name="global-error-handler" doc:id="f7769f82-8257-4720-aab6-16aa82502375" >
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="6f5062de-0255-466f-b52b-187289b624a3" type="APIKIT:BAD_REQUEST">
+			<ee:transform doc:name="Transform Message" doc:id="6b9169af-1d7a-412b-b901-f5a0bcd3bde6" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[400]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/java
+---
+{errorCause: error.description}]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+"Bad request"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+"Error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+400]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="6ef339dd-7376-4e4d-befb-b3450fee395a" name="error-final-response"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b88c3049-0d82-4ecb-85f3-0c551476dec1" type="APIKIT:NOT_FOUND" >
+			<ee:transform doc:name="Transform Message" doc:id="d4295d0c-88be-449b-b8ea-00fb73385d26" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[404]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/java
+---
+{errorCause: error.description}]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+"Resource not found"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+"Error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+404]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="aef30989-4031-453e-ad00-40baa942c873" name="error-final-response" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="db01cf6b-72b5-43b8-bbfe-2aa1f6df72a5" type="APIKIT:METHOD_NOT_ALLOWED" >
+			<ee:transform doc:name="Transform Message" doc:id="96a46053-150a-4a9f-a813-0ad7e8cdf37f" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[405]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/java
+---
+{errorcause: error.description}]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+"Method not allowed"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+"Error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+405]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="5f83b470-3017-4e29-b8a0-fb4bbaeaa5f5" name="error-final-response" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cfb1c9eb-101b-4237-a70e-a660cbeae5d3" type="APIKIT:NOT_ACCEPTABLE" >
+			<ee:transform doc:name="Transform Message" doc:id="6d135720-f8f5-41c5-9e9c-bc44e3006542" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[406]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/java
+---
+{errorcause: error.description}]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+"Not acceptable"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+"Error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+406]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="518ad4b2-2374-449f-96c7-6d14b0b06f38" name="error-final-response" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="14fd6a22-4134-4003-b5b2-4d454b5da81a" type="APIKIT:UNSUPPORTED_MEDIA_TYPE" >
+			<ee:transform doc:name="Transform Message" doc:id="1a5c9189-70b4-443a-99b8-babb50593065" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[415]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/json
+---
+{errorcause: error.description}]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+"Unsupported media type"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+"Error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+415]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="20148b14-c93b-4bff-bb1d-908aadc4f5a1" name="error-final-response" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ce4fbc96-55b3-4003-87d5-a18696389c15" type="APIKIT:NOT_IMPLEMENTED" >
+			<ee:transform doc:name="Transform Message" doc:id="a03cb920-4ccd-475a-8c92-55c0f7caf591" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[501]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/json
+---
+{errorcause: error.description}]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+"Not Implemented"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+"Error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+501]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="0710959a-37e5-4b53-b3da-6f149aac975c" name="error-final-response" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7be38212-77dc-4318-b68d-e6bdaf2721d4" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="5f753496-da5e-484b-9da8-1cc8c3d4e274" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="httpStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+if(!isEmpty(vars.httpStatus)) vars.httpStatus else if(!isEmpty(vars.outMetaCode)) vars.outMetaCode else 500 ]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaMessage" ><![CDATA[%dw 2.0
+output application/java
+---
+if(!isEmpty(vars.outMetaMessage)) vars.outMetaMessage else error.errormessage]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaStatus" ><![CDATA[%dw 2.0
+output application/java
+---
+(error.errorType.namespace ++ ":" ++ error.errorType.identifier) default "error"]]></ee:set-variable>
+					<ee:set-variable variableName="outMetaCode" ><![CDATA[%dw 2.0
+output application/java
+---
+if(!isEmpty(vars.outMetaCode)) vars.outMetaCode else 500]]></ee:set-variable>
+					<ee:set-variable variableName="outData" ><![CDATA[%dw 2.0
+output application/java
+---
+if(!isEmpty(vars.outData)) vars.outData else {"errorcause": error.detailedDescription}]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<flow-ref doc:name="error-final-response" doc:id="b2663b95-6516-417f-a071-6155a5ce2e91" name="error-final-response" />
+		</on-error-propagate>
+	</error-handler>
+</mule>
