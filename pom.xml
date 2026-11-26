@@ -9,7 +9,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <app.runtime>4.12.0</app.runtime>
+        <app.runtime>4.13.2</app.runtime>
         <munit.version>3.7.0</munit.version>
         <!-- Anypoint identity -->
         <anypoint.org.id>58c28f3b-fb7c-42fc-9ea6-934a93d608a4</anypoint.org.id>
@@ -214,6 +214,17 @@
             <name>MuleSoft Releases Repository</name>
             <url>https://repository.mulesoft.org/nexus/repository/releases/</url>
             <layout>default</layout>
+        </repository>
+        <!-- Required for com.github.everit-org.json-schema (transitive dependency of APIkit / MCP connector),
+             which is only published on JitPack, not Maven Central. -->
+        <repository>
+            <id>jitpack.io</id>
+            <name>JitPack</name>
+            <url>https://jitpack.io</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
     <pluginRepositories>
