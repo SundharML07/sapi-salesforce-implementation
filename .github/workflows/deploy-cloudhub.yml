@@ -202,7 +202,7 @@ jobs:
             -d "{\"grant_type\":\"client_credentials\",\"client_id\":\"${ANYPOINT_CLIENT_ID}\",\"client_secret\":\"${ANYPOINT_CLIENT_SECRET}\"}" | jq -r .access_token)
           curl -sf -H "Authorization: Bearer ${token}" \
             "https://anypoint.mulesoft.com/runtimefabric/api/organizations/${CLOUDHUB_BUSINESS_GROUP_ID}/targets" \
-            | jq -r --arg t "${CLOUDHUB_TARGET}" '[.[] | select(.name == $t or .id == $t)] | .[0] | .. | objects | select(has("baseVersion")) | "\(.baseVersion)\t\(.channel)\t\(.tag)"'
+            | jq -r --arg t "${CLOUDHUB_TARGET}" '[.[] | select(.name == $t or .id == $t)] | .[0] | .. | objects | select(has("baseVersion")) | select(.baseVersion | test("^4\\.(9|1[0-9])\\.")) | "\(.baseVersion)\t\(.channel)\t\(.tag)"'
 
       - name: Deploy to CloudHub 2.0
         run: |
