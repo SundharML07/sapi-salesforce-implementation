@@ -193,17 +193,6 @@ jobs:
             -DMULE_SECURE_KEY="${MULE_SECURE_KEY}" \
             -Danypoint.org.id="${ANYPOINT_ORG_ID}"
 
-      - name: Show Mule runtimes supported by the CloudHub 2.0 target
-        continue-on-error: true
-        shell: bash
-        run: |
-          token=$(curl -sf -X POST https://anypoint.mulesoft.com/accounts/api/v2/oauth2/token \
-            -H 'Content-Type: application/json' \
-            -d "{\"grant_type\":\"client_credentials\",\"client_id\":\"${ANYPOINT_CLIENT_ID}\",\"client_secret\":\"${ANYPOINT_CLIENT_SECRET}\"}" | jq -r .access_token)
-          curl -sf -H "Authorization: Bearer ${token}" \
-            "https://anypoint.mulesoft.com/runtimefabric/api/organizations/${CLOUDHUB_BUSINESS_GROUP_ID}/targets" \
-            | jq -r --arg t "${CLOUDHUB_TARGET}" '[.[] | select(.name == $t or .id == $t)] | .[0] | .. | objects | select(has("baseVersion")) | select(.baseVersion | test("^4\\.1[2-9]\\.")) | tojson'
-
       - name: Deploy to CloudHub 2.0
         run: |
           artifactName=$(ls target/*.jar | head -1)

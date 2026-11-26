@@ -9,7 +9,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <app.runtime>4.12.0</app.runtime>
+        <app.runtime>4.13.2</app.runtime>
         <munit.version>3.7.0</munit.version>
         <!-- Anypoint identity -->
         <anypoint.org.id>58c28f3b-fb7c-42fc-9ea6-934a93d608a4</anypoint.org.id>
