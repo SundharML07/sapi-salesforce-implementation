@@ -31,7 +31,7 @@
         <cloudhub.replicas>1</cloudhub.replicas>
         <cloudhub.vcores>0.1</cloudhub.vcores>
         <cloudhub.deployment.timeout>1800000</cloudhub.deployment.timeout>
-        <mule.maven.plugin.version>4.10.3</mule.maven.plugin.version>
+        <mule.maven.plugin.version>4.10.0</mule.maven.plugin.version>
     </properties>
     <build>
         <plugins>
