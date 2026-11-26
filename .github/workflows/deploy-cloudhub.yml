@@ -6,6 +6,7 @@ on:
       - main
     types:
       - closed
+  workflow_dispatch:
 
 concurrency:
   group: cloudhub2-${{ github.event.pull_request.merge_commit_sha || github.sha }}
@@ -15,7 +16,7 @@ jobs:
   build:
     name: Package Application
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     permissions:
       contents: read
     env:
@@ -46,6 +47,14 @@ jobs:
           <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <mirrors>
+              <!-- A transitive POM declares an internal Salesforce Nexus that is unreachable from GitHub runners. -->
+              <mirror>
+                <id>sfdc-internal-to-central</id>
+                <mirrorOf>my-maven-proxy-central</mirrorOf>
+                <url>https://repo.maven.apache.org/maven2</url>
+              </mirror>
+            </mirrors>
             <servers>
               <server>
                 <id>anypoint-exchange-v3</id>
@@ -130,6 +139,14 @@ jobs:
           <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <mirrors>
+              <!-- A transitive POM declares an internal Salesforce Nexus that is unreachable from GitHub runners. -->
+              <mirror>
+                <id>sfdc-internal-to-central</id>
+                <mirrorOf>my-maven-proxy-central</mirrorOf>
+                <url>https://repo.maven.apache.org/maven2</url>
+              </mirror>
+            </mirrors>
             <servers>
               <server>
                 <id>anypoint-exchange-v3</id>

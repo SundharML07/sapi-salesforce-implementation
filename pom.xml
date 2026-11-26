@@ -215,6 +215,17 @@
             <url>https://repository.mulesoft.org/nexus/repository/releases/</url>
             <layout>default</layout>
         </repository>
+        <!-- Required for com.github.everit-org.json-schema (transitive dependency of APIkit / MCP connector),
+             which is only published on JitPack, not Maven Central. -->
+        <repository>
+            <id>jitpack.io</id>
+            <name>JitPack</name>
+            <url>https://jitpack.io</url>
+            <layout>default</layout>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
